@@ -1,3 +1,4 @@
+package application;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -18,8 +19,6 @@ import javafx.scene.control.DatePicker;
 import javafx.geometry.Insets;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import java.io.FileInputStream;
-import java.io.IOException;
 import javafx.beans.value.ChangeListener;
 import java.io.InputStream;
 import javafx.beans.value.ObservableValue;
@@ -41,9 +40,11 @@ public class CruisesContent extends ContentArea {
     // Lodging
     Label estCost;
     Spinner<Integer> passengerCount;
-    InputStream roomImageURL;
-    ImageView roomView;
-    Image roomImage;
+    InputStream cabinImageURL;
+    ImageView cabinView;
+    Image cabinImage;
+//    Label 
+    
     
     public CruisesContent() {
     	
@@ -54,18 +55,17 @@ public class CruisesContent extends ContentArea {
 		origin = new Label("");
 		finalDestination = new Label("");
 		passengers = new Label("");
-		imageURL = getClass().getResourceAsStream("/images/ships/empty.jpg");
+		imageURL = getClass().getResourceAsStream("/application/images/ships/empty.jpg");
 		shipView = new ImageView();
 		shipImage = new Image(imageURL);
 		estCost = new Label("$0.00");
         passengerCount = new Spinner<Integer>(1, 10, 1);
-        roomView = new ImageView();
+        cabinView = new ImageView();
     }
+ 
     
-	
     @Override
     public void initialize() {
-
         GridPane selectPane = new GridPane();
         VBox vbox = new VBox();
 
@@ -151,41 +151,47 @@ public class CruisesContent extends ContentArea {
         lodgingLayout.setStyle("-fx-padding: 20;");
 
         // Fields
-        ComboBox<String> roomTypes = new ComboBox<String>(getRooms()); // Need to change to Room Type Object
-        roomTypes.getSelectionModel().selectFirst();
+        ComboBox<String> cabinTypes = new ComboBox<String>(getCabins()); // Need to change to Room Type Object
+        cabinTypes.getSelectionModel().selectFirst();
         passengerCount.setPrefWidth(60);
 
-        HBox roomInfo = new HBox();
+        HBox cabinInfo = new HBox();
       
         // Buttons
 	    Button reserveButton = new Button("Reserve");
 	    reserveButton.setDisable(true);
         Button bookButton = new Button("Book");
-        roomImageURL = getClass().getResourceAsStream("/images/rooms/room.jpg");
-        roomImage = new Image(roomImageURL);
+        cabinImageURL = getClass().getResourceAsStream("/application/images/cabins/cabin.jpg");
+        cabinImage = new Image(cabinImageURL);
+        cabinView.setImage(cabinImage);
         
-//        roomInfo.getChildren().add();
+        GridPane cabinInfoContainer = new GridPane();
+//        cabinInfoContainer
+        
+        cabinInfo.getChildren().addAll(cabinView);
         
         // Add Components to layout
-        lodgingLayout.add(new HBox(new Label("Select Room "), roomTypes), 0, 0);
+        lodgingLayout.add(new HBox(new Label("Select Room "), cabinTypes), 0, 0);
         lodgingLayout.add(new HBox(new Label("Passengers " ), passengerCount), 1, 0);
         lodgingLayout.add(new HBox(new Label("Estimated Cost "), estCost), 2, 0);
-        lodgingLayout.add(roomInfo, 0, 3);
-        lodgingLayout.add(bookButton, 1, 3); // Adjust column index
-        lodgingLayout.add(reserveButton, 2, 3); // Adjust column index
+        lodgingLayout.add(cabinInfo, 0, 3);
+        lodgingLayout.add(bookButton, 0, 4); // Adjust column index
+        lodgingLayout.add(reserveButton, 1, 4); // Adjust column index
 
         // Event Listeners
         bookButton.setOnAction(e -> {
-        	if (roomTypes.getValue() != null) {
+        	if (cabinTypes.getValue() != null) {
         		openBillingWindow();
         	}
         	else {
-        		openErrorWindow("ROOM");
+        		openErrorWindow("CRUISE");
         	}
         });
         
-        roomTypes.setOnAction(e -> {
-        	updateLodgingInfo(estCost, passengerCount.getValue(), roomTypes.getValue());
+        cabinTypes.valueProperty().addListener(new ChangeListener<String>() {
+            @Override public void changed(ObservableValue ov, String t, String t1) {
+            	updateLodgingInfo(t1);
+              }
         });
         
         
@@ -283,21 +289,20 @@ public class CruisesContent extends ContentArea {
     }
     
     // Updates Room Information (Need to update)
-    private void updateLodgingInfo(Label estCost, int passengers, String room) {
+    private void updateLodgingInfo(String cabin) {
     	int cost = 0;
-    	switch (room) {
-			case "Room 1":
+    	switch (cabin) {
+			case "Cabin 1":
 				cost = 400;
 				break;
-			case "Room 2":
+			case "Cabin 2":
 				cost = 600;
 				break;
-			case "Room 3":
+			case "Cabin 3":
 				cost = 800;
 				break;
     	}
-    	
-   		Integer totalCost = cost*passengers;
+   		Integer totalCost = cost*passengerCount.getValue();
     	estCost.setText(totalCost.toString());
     }
     
@@ -308,7 +313,7 @@ public class CruisesContent extends ContentArea {
     	// temporary case statement for testing purposes
     	switch (ship) {
     		case "Item 1":
-    			imageURL = getClass().getResourceAsStream("/images/ships/ship.jpg");
+    			imageURL = getClass().getResourceAsStream("/application/images/ships/ship.jpg");
     			shipName.setText("Ship 1");
     			shipCruiseLine.setText("Cruise 1");
     			tripLength.setText("99");
@@ -318,7 +323,7 @@ public class CruisesContent extends ContentArea {
     			passengers.setText("123");
     			break;
     		case "Item 2":
-    			imageURL = getClass().getResourceAsStream("/images/ships/ship2.jpg");
+    			imageURL = getClass().getResourceAsStream("/application/images/ships/ship2.jpg");
     			shipName.setText("Ship 2");
     			shipCruiseLine.setText("Cruise 2");
     			tripLength.setText("8");
@@ -328,7 +333,7 @@ public class CruisesContent extends ContentArea {
     			passengers.setText("1234");
     			break;
     		case "Item 3":
-    			imageURL = getClass().getResourceAsStream("/images/ships/empty.jpg");
+    			imageURL = getClass().getResourceAsStream("/application/images/ships/empty.jpg");
     			shipName.setText("Ship 3");
     			shipCruiseLine.setText("Cruise 3");
     			tripLength.setText("12");
@@ -348,8 +353,8 @@ public class CruisesContent extends ContentArea {
     }
     
     // Gets Rooms from database (Need to Update)
-    private ObservableList<String> getRooms() {
-    	return FXCollections.observableArrayList("Room 1", "Room 2", "Room 3");
+    private ObservableList<String> getCabins() {
+    	return FXCollections.observableArrayList("Cabin 1", "Cabin 2", "Cabin 3");
     }
     
     
