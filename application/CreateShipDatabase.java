@@ -8,19 +8,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-/*import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;  
-*/
+
 public class CreateShipDatabase {  
 
-	static String fileName = "CLMS";
-	static String excelFileName = "C:/Users/djclo/OneDrive/Desktop/School/CMSC_495/Group3/CLMS_database.xlsx";
+	static String url = "jdbc:sqlite:src/application/CLMSv2.db";  
 
-
-	public static void createNewDatabase(String fileName) {  
-		String url = "jdbc:sqlite:C:/Users/djclo/sqlite/" + fileName;  
+	public static void createNewDatabase() {  
 		try {  
 			Connection conn = DriverManager.getConnection(url);  
 			if (conn != null) {  
@@ -28,20 +21,9 @@ public class CreateShipDatabase {
 				System.out.println("The driver name is " + meta.getDriverName());  
 				System.out.println("A new database has been created.");
 				createNewTable(conn, url);   
-				/*
-				 // requires Apache POI
-				 for(int i = 0; i < 40; i++) 
-				{
-					try {
-						loadShip(conn, excelFileName, i);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}*/
-				selectAll(conn);
+				loadShip(conn);
 			}  
 		} catch (SQLException e) {System.out.println(e.getMessage());}  
-
 	}  
 
 	public static void createNewTable(Connection conn, String url) {  
@@ -72,7 +54,7 @@ public class CreateShipDatabase {
 			System.out.println(e.getMessage());  
 		}  
 	}  
-
+	//Method to add ship to database	
 	public static void insert(Connection conn, String name, String company, String location, int tripLength, int numCabins, 
 			int yearOfBuild, int maintenance, int maxCapacity,String origin, String finalDestination, 
 			String destination1,String destination2, String destination3, String destination4, String destination5) {  
@@ -116,115 +98,78 @@ public class CreateShipDatabase {
 			System.out.println(e.getMessage());  
 		}  
 	}  
-	/*
-	 * // Method to pull Ship records from Obsolete Excel database to insert into SQlite
-	 
-	public static void loadShip(Connection conn, String filename, int i) throws IOException {
-		String name = null;
-		String company = null;
-		String location = null;
-		int tripLength = 0; 
-		int numCabins = 0;
-		int yearOfBuild = 0;
-		int maintenance = 0;
-		int maxCapacity = 0;
-		String origin = null;
-		String finalDestination = null;
-		String destination1 = null;
-		String destination2 = null;
-		String destination3 = null;
-		String destination4 = null;
-		String destination5 = null;
-
-		// Creating a xls file object with specific file path to read
-		File xlsFile = new File(filename);
-		// Creating input stream
-		FileInputStream inputStream = new FileInputStream(xlsFile);
-		XSSFWorkbook workbook = new XSSFWorkbook(inputStream);
-		// Reading the first sheet of the excel file
-		XSSFSheet sheet = workbook.getSheetAt(0);
-		Row row = sheet.getRow(i+1);  
-		Iterator<Cell> cellIterator = row.iterator();
-		// Iterating all the columns in a row
-		int colNum = 0;    
-		while (cellIterator.hasNext()) {
-			//int z = 0;
-			Cell cell = cellIterator.next();
-			switch (colNum) {
-			case 0:
-				name = cell.getRichStringCellValue().getString();
-				//System.out.println(colNum+ " " + name);
-				break;
-			case 1:
-				company = cell.getRichStringCellValue().getString();
-				//System.out.println(colNum+ " " + company);
-				break;
-			case 2:
-				location = cell.getRichStringCellValue().getString();
-				//System.out.println(colNum+ " " + location);
-				break;
-			case 3:
-				tripLength = (int) cell.getNumericCellValue();
-				//System.out.println(colNum+ " " + tripLength);
-				break;
-			case 4:
-				numCabins = (int) cell.getNumericCellValue();
-				//System.out.println(colNum+ " " + numCabins);
-				break;
-			case 5:
-				yearOfBuild = (int) cell.getNumericCellValue();
-				//System.out.println(colNum+ " " + yearOfBuild);
-				break;
-			case 6:
-				maintenance = (int) cell.getNumericCellValue();
-				//System.out.println(colNum+ " " + maintenance);
-				break;
-			case 7:
-				maxCapacity = (int) cell.getNumericCellValue();
-				//System.out.println(colNum+ " " + maxCapacity);
-				break;
-			case 8:
-				origin = cell.getRichStringCellValue().getString();
-				//System.out.println(colNum+ " " + origin);
-				break;
-			case 9:
-				finalDestination = cell.getRichStringCellValue().getString();
-				//System.out.println(colNum+ " " + destination);
-				break;
-			case 10:
-				destination1 = cell.getRichStringCellValue().getString();
-				//System.out.println(colNum+ " " + destination);
-				break;
-			case 11:
-				destination2 = cell.getRichStringCellValue().getString();
-				//System.out.println(colNum+ " " + destination);
-				break;
-			case 12:
-				destination3 = cell.getRichStringCellValue().getString();
-				//System.out.println(colNum+ " " + destination);
-				break;
-			case 13:
-				destination4 = cell.getRichStringCellValue().getString();
-				//System.out.println(colNum+ " " + destination);
-				break;
-			case 14:
-				destination5 = cell.getRichStringCellValue().getString();
-				//System.out.println(colNum+ " " + destination);
-				break;
-			default:
-				break;
-			}
-			colNum++;
-		}
-
-		// Closing the workbook and input stream
-
-		workbook.close();
-		inputStream.close();
-		//System.out.println(i+"loaded");
-		insert(conn, name, company, location, tripLength, numCabins, yearOfBuild, maintenance, maxCapacity, origin, finalDestination, destination1, 
-				destination2, destination3, destination4, destination5);
-	}*/
+	
+	//method to preload ship data to SQLite Database
+	public static void loadShip(Connection conn) {
+			
+		insert(conn, "Carnival Paradise", "Carnival Cruise Line",
+				"https://www.cruisemapper.com/?imo=9120877",
+				4, 61, 1998, 2021, 183,
+				"Tampa, Florida", "Tampa, Florida",
+				"Cozumel, Mexico", "", "", "", "");
+		insert(conn, "Carnival Legend", "Carnival Cruise Line",
+				"https://www.cruisemapper.com/?imo=9224726",
+				6,62,2002,2021,186,
+				"Baltimore, Maryland", "Baltimore, Maryland",
+				"Kings Wharf, Bermuda", "", "", "", "");
+		insert(conn, "Carnival Panorama","Carnival Cruise Line",
+				"https://www.cruisemapper.com/?imo=9802384",
+				7,965,2019,2024,2895,
+				"Los Angeles, California","Los Angeles, California"
+				,"Puerto Vallarta, Mexico","Mazatlan, Mexico","Cabo San Lucas, Mexico","","");
+		insert(conn, "Carnival Vista","Carnival Cruise Line",
+				"https://www.cruisemapper.com/?imo=9692569"
+				,7,965,2016,0,2895,
+				"Galveston, Texas","Galveston, Texas",
+				"Roatan Island, Honduras","Belize City, Belize","Cozumel, Mexico","","");
+		insert(conn, "Disney Wish","Disney Cruise Line",
+				"https://www.cruisemapper.com/?imo=9834739",
+				4,238,2022,0,714,
+				"Orlando, Florida","Orlando, Florida",
+				"Nassau, Bahamas","Disney Castaway Island, Bahamas","","","");
+		insert(conn, "Disney Magic","Disney Cruise Line",
+				"https://www.cruisemapper.com/?imo=9126807",
+				4,877,1998,2023,2631,
+				"Miami, Florida","Miami, Florida",
+				"Nassau, Bahamas","Disney Castaway Island, Bahamas","","","");
+		insert(conn, "Disney Wonder","Disney Cruise Line",
+				"https://www.cruisemapper.com/?imo=9126819",
+				7,877,1999,2023,2631,
+				"Vancouver, Canada","Vancouver, Canada",
+				"Skagway, Alaska","Juneau, Alaska","Ketchikan, Alaska","","");
+		insert(conn, "Marella Discovery","Marella Cruises",
+				"https://www.cruisemapper.com/?imo=9070632",
+				7,915,1996,2022,2745,
+				"Orlando, Florida","Orlando, Florida",
+				"Puerto Plata, Dominican Republic","Grand Turk Island, Turks and Caicos Islands","Nassau, Bahamas","Miami, Florida","");
+		insert(conn, "Marella Voyager","Marella Cruises",
+				"https://www.cruisemapper.com/?imo=9106302",
+				7,956,1997,2023,2868,
+				"Palma de Mallorca, Spain","Palma de Mallorca, Spain",
+				"Olbia, Italy","Naples, Italy","Piombino, Italy","Nice, France","Palamos, Spain");
+		insert(conn, "Marella Explorer","Marella Cruises",
+				"https://www.cruisemapper.com/?imo=9106297",
+				7,962,1996,2021,2886,
+				"Corfu Island, Greece","Corfu Island, Greece",
+				"Koper, Slovenia","Ravenna, Italy","Split, Croatia","Dubrovnik, Croatia","Kotor, Montenegro");
+		insert(conn, "Oceania Insignia","Oceania Cruises",
+				"https://www.cruisemapper.com/?imo=9156462",
+				7,349,1998,2022,1047,
+				"New York City, New York","New York City, New York"
+				,"St George, Bermuda","Hamilton, Bermuda","","","");
+		insert(conn, "Oceania Allura","Oceania Cruises",
+				"x",
+				0,613,2025,0,1839,
+				"x","x"
+				,"x","","","","");
+		
+		
+		/*insert(conn, name, company, 
+		 * location, 
+		 * tripLength, numCabins, yearOfBuild, maintenance, maxCapacity, 
+		 * origin, finalDestination, 
+		 * destination1, destination2, destination3, destination4, destination5);*/
+	}
 
 	public static void selectAll(Connection conn){  
 		String sql = "SELECT * FROM ships";  
@@ -257,7 +202,25 @@ public class CreateShipDatabase {
 		}  
 	}  
 
+	public static Connection connect() {  
+		Connection conn = null;  
+
+		try {  
+            // db parameters  
+            // create a connection to the database  
+            conn = DriverManager.getConnection(url);  
+              
+            System.out.println("Connection to SQLite has been established.");  
+              
+        } catch (SQLException e) {  
+            System.out.println(e.getMessage());  
+        }   
+        
+        return conn;
+    }  
+	
 	public static void main(String[] args) {  
-		createNewDatabase(fileName); 
+		//createNewDatabase(); 
+		selectAll(connect());
 	}
 }  
