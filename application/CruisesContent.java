@@ -1,5 +1,3 @@
-package application;
-
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -20,98 +18,95 @@ import javafx.scene.control.DatePicker;
 import javafx.geometry.Insets;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-
+import java.io.FileInputStream;
+import java.io.IOException;
+import javafx.beans.value.ChangeListener;
+import java.io.InputStream;
+import javafx.beans.value.ObservableValue;
 
 public class CruisesContent extends ContentArea {
 	
-    VBox cruiseMain = new VBox();
-    ImageView shipImageView = new ImageView();
+	// Ship
+    private Label shipName;
+    private Label shipCruiseLine;
+    private Label tripLength;
+    private Label yearBuilt;
+    private Label origin;
+    private Label finalDestination;
+    private Label passengers;
+    InputStream imageURL;
+    ImageView shipView;
+    Image shipImage;
+	
+    // Lodging
+    Label estCost;
+    Spinner<Integer> passengerCount;
+    InputStream roomImageURL;
+    ImageView roomView;
+    Image roomImage;
+    
+    public CruisesContent() {
+    	
+		shipName = new Label("");
+		shipCruiseLine = new Label("");
+		tripLength = new Label("");
+		yearBuilt = new Label("");
+		origin = new Label("");
+		finalDestination = new Label("");
+		passengers = new Label("");
+		imageURL = getClass().getResourceAsStream("/images/ships/empty.jpg");
+		shipView = new ImageView();
+		shipImage = new Image(imageURL);
+		estCost = new Label("$0.00");
+        passengerCount = new Spinner<Integer>(1, 10, 1);
+        roomView = new ImageView();
+    }
     
 	
-    @SuppressWarnings({ "rawtypes" })
-	@Override
+    @Override
     public void initialize() {
 
         GridPane selectPane = new GridPane();
         VBox vbox = new VBox();
-        VBox searchLabels = new VBox();
-        VBox searchFields = new VBox();
 
-        // need to fix this spacing
-        searchLabels.setSpacing(19);
-        searchFields.setSpacing(16);
+        Label searchLabel = new Label("Select ship by name");
         
-        Label searchLabel = new Label("Search");
-
-        searchLabels.getChildren().addAll
-                ( 
-                		searchLabel, new Label("Date"), 
-                    new Label("Ship"), new Label("Origin"), 
-                    new Label("Destination")
-                );
-
-        ColumnConstraints col1 = new ColumnConstraints();
-        col1.setPercentWidth(10);
+        ComboBox<String> searchComboBox = new ComboBox<String>(); // This needs to be set to ships
+        searchComboBox.setPrefSize(200, 25);
+        searchComboBox.setItems(getShips());
         
-        // Cruise search components
-        ComboBox cruiseSearch = new ComboBox();
-        cruiseSearch.setMaxSize(200, 200);
-        /*cruiseSearch.setItems(getShips());*/
-        
-        Label cruiseDate = new Label("1/1/2023");
-        cruiseDate.setMaxSize(150, 150);
-        
-        Label cruiseShip = new Label("Ship Name");
-        cruiseShip.setMaxSize(150, 150);
-        
-        Label cruiseOrigin = new Label("Cruise Origin");
-        cruiseOrigin.setMaxSize(150, 150);
-        
-        Label cruiseDestination = new Label("Cruise Destination");
-        cruiseDestination.setMaxSize(150, 150);
-
-        searchFields.getChildren().addAll(
-        		cruiseSearch, cruiseDate, cruiseShip,
-        		cruiseOrigin, cruiseDestination
-                );
-        
-
-
         // search box
-        HBox searchBox = new HBox(searchLabels, searchFields);
-        searchBox.setSpacing(20);
-        searchBox.getStyleClass().add("search-box");
+        HBox searchContainer = new HBox(searchLabel, searchComboBox);
+        searchContainer.setSpacing(20);
+        searchContainer.getStyleClass().add("search-box");
         
         // ship info
-        GridPane shipInfo = new GridPane();
-        shipInfo.add(new Label("Ship Name"), 0, 0);
-        shipInfo.add(new Label("Origin"), 0, 1);
-        shipInfo.add(new Label("Date"), 0, 2);
-        shipInfo.add(new Label("Destination"), 0, 3);
-        shipInfo.add(new Label("Link"), 0, 4);
-        shipInfo.add(new Label("Price"), 0, 5);
+        GridPane shipInfoContainer = new GridPane();
+
+        shipView.setImage(shipImage);
+        shipView.setFitHeight(200);
+        shipView.setFitWidth(200);
+        shipView.setPreserveRatio(true);
         
-        // ship box
-        HBox shipBox = new HBox(shipImageView, shipInfo);
-        setImageUrl("ship.png");      
+        shipInfoContainer.add(shipName, 0, 0);
+        shipInfoContainer.add(shipCruiseLine, 0, 1);
+        shipInfoContainer.add(new HBox(tripLength, new Label(" Days")), 0, 2);
+        shipInfoContainer.add(new HBox(new Label("Built in " ), yearBuilt), 0, 3);
+        shipInfoContainer.add(new HBox(origin, new Label(" - "), finalDestination), 0, 4);
+        shipInfoContainer.add(new HBox(passengers, new Label(" passengers")), 0, 5);
+        
+        // ship display box
+        HBox shipBox = new HBox(shipView, shipInfoContainer);
+        shipBox.setSpacing(15);
+        
         shipBox.getStyleClass().add("ship-box");
         
         Button shipButton = new Button("Select Cruise");
-        shipButton.setOnAction(e -> {
-        	if (cruiseSearch.getValue() != null) {
-            	openLodgingWindow();
-        	}
-        	else {
-        		openErrorWindow("CRUISE");
-        	}
-
-        });
-        
 
         selectPane.setHgap(10);
         selectPane.setVgap(10);
 
-        selectPane.add(searchBox, 0, 0);
+        selectPane.add(searchContainer, 0, 0);
         selectPane.add(shipBox, 0, 1);
         selectPane.add(shipButton, 0, 2);
 
@@ -121,7 +116,25 @@ public class CruisesContent extends ContentArea {
         selectPane.setMaxWidth(Double.MAX_VALUE);
 
         vbox.getChildren().addAll(selectPane);
+        
+        // Event Listeners
+        shipButton.setOnAction(e -> {
+        	if (searchComboBox.getValue() != null) {
+            	openLodgingWindow();
+        	}
+        	else {
+        		openErrorWindow("CRUISE");
+        	}
+        });
+        
+        
+        searchComboBox.valueProperty().addListener(new ChangeListener<String>() {
+        	@Override public void changed(ObservableValue ov, String t, String t1) {
+        		updateCruiseInfo(t1);
+              }    
+        });
 
+        // Super class content set
         content = vbox;
         content.getStyleClass().add("overview-content");
     }
@@ -131,24 +144,37 @@ public class CruisesContent extends ContentArea {
         newStage.setTitle("Lodging");
 
         GridPane lodgingLayout = new GridPane();
-        Scene newScene = new Scene(lodgingLayout, 400, 200); // Adjust window size
+        Scene newScene = new Scene(lodgingLayout, 600, 400); // Adjust window size
 
         lodgingLayout.setHgap(10); 
         lodgingLayout.setVgap(10);
         lodgingLayout.setStyle("-fx-padding: 20;");
 
-
-
         // Fields
         ComboBox<String> roomTypes = new ComboBox<String>(getRooms()); // Need to change to Room Type Object
-        Spinner<Integer> passengers = new Spinner<Integer>();
-        Label estCost = new Label("$0.00"); // Set Est Cost
+        roomTypes.getSelectionModel().selectFirst();
+        passengerCount.setPrefWidth(60);
+
         HBox roomInfo = new HBox();
       
         // Buttons
 	    Button reserveButton = new Button("Reserve");
 	    reserveButton.setDisable(true);
         Button bookButton = new Button("Book");
+        roomImageURL = getClass().getResourceAsStream("/images/rooms/room.jpg");
+        roomImage = new Image(roomImageURL);
+        
+//        roomInfo.getChildren().add();
+        
+        // Add Components to layout
+        lodgingLayout.add(new HBox(new Label("Select Room "), roomTypes), 0, 0);
+        lodgingLayout.add(new HBox(new Label("Passengers " ), passengerCount), 1, 0);
+        lodgingLayout.add(new HBox(new Label("Estimated Cost "), estCost), 2, 0);
+        lodgingLayout.add(roomInfo, 0, 3);
+        lodgingLayout.add(bookButton, 1, 3); // Adjust column index
+        lodgingLayout.add(reserveButton, 2, 3); // Adjust column index
+
+        // Event Listeners
         bookButton.setOnAction(e -> {
         	if (roomTypes.getValue() != null) {
         		openBillingWindow();
@@ -159,17 +185,10 @@ public class CruisesContent extends ContentArea {
         });
         
         roomTypes.setOnAction(e -> {
-        	updateRoomInfo(estCost, passengers.getValue(), roomTypes.getValue());
+        	updateLodgingInfo(estCost, passengerCount.getValue(), roomTypes.getValue());
         });
         
-        // Add Components
-        lodgingLayout.add(roomTypes, 0, 0);
-        lodgingLayout.add(passengers, 1, 0);
-        lodgingLayout.add(estCost, 2, 0);
-        lodgingLayout.add(roomInfo, 0, 3);
-        lodgingLayout.add(bookButton, 1, 3); // Adjust column index
-        lodgingLayout.add(reserveButton, 2, 3); // Adjust column index
-
+        
         newStage.setScene(newScene);
         newStage.show();
     }
@@ -250,7 +269,7 @@ public class CruisesContent extends ContentArea {
         newStage.setTitle("ERROR");
 
         GridPane errorPane = new GridPane();
-        errorPane.setAlignment(Pos.CENTER); // Center the GridPane within the Scene
+        errorPane.setAlignment(Pos.CENTER);
         Scene newScene = new Scene(errorPane, 300, 70);
 
         Button close = new Button("Close");
@@ -263,8 +282,8 @@ public class CruisesContent extends ContentArea {
         newStage.show();
     }
     
-    // Need to update 
-    private void updateRoomInfo(Label estCost, int passengers, String room) {
+    // Updates Room Information (Need to update)
+    private void updateLodgingInfo(Label estCost, int passengers, String room) {
     	int cost = 0;
     	switch (room) {
 			case "Room 1":
@@ -282,18 +301,56 @@ public class CruisesContent extends ContentArea {
     	estCost.setText(totalCost.toString());
     }
     
-    @SuppressWarnings("unused")
-	private ObservableList<String> getShips() {
+    // Updates Cruise Information (Need to update)
+    private void updateCruiseInfo(String ship) {
+        
+        // this will get just get all the info from database
+    	// temporary case statement for testing purposes
+    	switch (ship) {
+    		case "Item 1":
+    			imageURL = getClass().getResourceAsStream("/images/ships/ship.jpg");
+    			shipName.setText("Ship 1");
+    			shipCruiseLine.setText("Cruise 1");
+    			tripLength.setText("99");
+    			yearBuilt.setText("1992");
+    			origin.setText("Start");
+    			finalDestination.setText("End");
+    			passengers.setText("123");
+    			break;
+    		case "Item 2":
+    			imageURL = getClass().getResourceAsStream("/images/ships/ship2.jpg");
+    			shipName.setText("Ship 2");
+    			shipCruiseLine.setText("Cruise 2");
+    			tripLength.setText("8");
+    			yearBuilt.setText("1876");
+    			origin.setText("Start 2");
+    			finalDestination.setText("End 2");
+    			passengers.setText("1234");
+    			break;
+    		case "Item 3":
+    			imageURL = getClass().getResourceAsStream("/images/ships/empty.jpg");
+    			shipName.setText("Ship 3");
+    			shipCruiseLine.setText("Cruise 3");
+    			tripLength.setText("12");
+    			yearBuilt.setText("1784");
+    			origin.setText("Start 3");
+    			finalDestination.setText("End 3");
+    			passengers.setText("555");
+    			break;
+    	}
+    	shipImage = new Image(imageURL);
+        shipView.setImage(shipImage);
+    }
+    
+    // Get Ships from database (Need to update)
+    private ObservableList<String> getShips() {
     	return FXCollections.observableArrayList("Item 1", "Item 2", "Item 3");
     }
     
+    // Gets Rooms from database (Need to Update)
     private ObservableList<String> getRooms() {
     	return FXCollections.observableArrayList("Room 1", "Room 2", "Room 3");
     }
     
-    private void setImageUrl(String imageUrl) {
-        Image image = new Image(getClass().getResourceAsStream(imageUrl));
-        shipImageView.setImage(image);
-    }
     
 }
