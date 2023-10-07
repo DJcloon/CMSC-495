@@ -1,5 +1,5 @@
 package application;
-
+import javafx.concurrent.Worker.State;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -9,10 +9,17 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import java.io.File;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.image.WritableImage;
+import javafx.scene.layout.StackPane;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
+import javafx.scene.image.ImageView;
 
 public class OverviewContent extends ContentArea {
     private Stage primaryStage;
@@ -32,24 +39,26 @@ public class OverviewContent extends ContentArea {
         GridPane gridPane = new GridPane();
         gridPane.setHgap(10); // Horizontal spacing
         gridPane.setVgap(20); // Vertical spacing
+        
+        WebView webView = new WebView();
+        WebEngine webEngine = webView.getEngine();
+
+        webEngine.load("https://www.cruisemapper.com/");
 
         // Define the four categories (replace with actual content)
         VBox category1 = new VBox(new Label("Category 1 Content"));
-        VBox category2 = new VBox(new Label("Category 2 Content"));
+        VBox category2 = new VBox(webView);
         VBox category3 = new VBox(new Label("Category 3 Content"));
-        VBox category4 = new VBox(new Label("Category 4 Content"));
 
         // Add CSS styles to the categories
         category1.getStyleClass().add("overview-category");
         category2.getStyleClass().add("overview-category");
         category3.getStyleClass().add("overview-category");
-        category4.getStyleClass().add("overview-category");
 
         // Add categories to the GridPane
         gridPane.add(category1, 0, 0);
         gridPane.add(category2, 1, 0);
         gridPane.add(category3, 0, 1);
-        gridPane.add(category4, 1, 1);
         gridPane.add(new Label("Ships"), 0, 2, 2, 1);
         gridPane.add(createShipTable(), 0, 3, 2, 1);
 
@@ -57,6 +66,7 @@ public class OverviewContent extends ContentArea {
         GridPane.setHgrow(gridPane, Priority.ALWAYS);
         GridPane.setVgrow(gridPane, Priority.ALWAYS);
         gridPane.setMaxWidth(Double.MAX_VALUE);
+        gridPane.setMaxHeight(Double.MAX_VALUE);
         
         ColumnConstraints col1 = new ColumnConstraints();
         col1.setPercentWidth(50);
@@ -75,25 +85,6 @@ public class OverviewContent extends ContentArea {
         VBox navigationBar = new VBox();
         navigationBar.getStyleClass().add("overview-navigation-bar");
 
-        Button loadButton = new Button("Load");
-        loadButton.getStyleClass().add("load-button");
-
-        loadButton.setOnAction((event) -> {
-            FileChooser fileChooser = new FileChooser();
-            configureFileChooser(fileChooser);
-
-            File selectedFile = fileChooser.showOpenDialog(primaryStage);
-
-            if (selectedFile != null) {
-                String filePath = selectedFile.getPath();
-
-                // Add Excel file handling logic here
-
-                System.out.println("Selected Excel file: " + filePath);
-            }
-        });
-        navigationBar.getChildren().add(loadButton);
-
         return navigationBar;
     }
 
@@ -107,8 +98,7 @@ public class OverviewContent extends ContentArea {
         this.primaryStage = primaryStage;
     }
     
-    @SuppressWarnings("unchecked")
-	private TableView<String> createShipTable() {
+    private TableView<String> createShipTable() {
         TableView<String> shipTable = new TableView<>();
         shipTable.getStyleClass().add("overview-table");
 
