@@ -1,5 +1,4 @@
 package application;
-
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.ToggleButton;
@@ -12,7 +11,8 @@ import javafx.stage.Stage;
 public class Main extends Application {
     private StackPane root;
     private String currentTab = "Cruises";
-
+    CreateShipDatabase database = new CreateShipDatabase();
+    
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Cruise Liner Management System");
@@ -37,7 +37,7 @@ public class Main extends Application {
         CruisesContent cruisesContent = new CruisesContent();
         cruisesContent.initialize();
 
-        MaintenanceContent maintenanceContent = new MaintenanceContent();
+        MaintenanceContent maintenanceContent = new MaintenanceContent(database);
         maintenanceContent.initialize();
 
         ManifestContent manifestContent = new ManifestContent();
@@ -79,12 +79,14 @@ public class Main extends Application {
         Scene scene = new Scene(mainLayout, 800, 600);
         
         // Link the CSS file to the scene
-        scene.getStylesheets().add(getClass().getResource("styles.css").toExternalForm());
+        scene.getStylesheets().add(getClass().getResource("/application/styles.css").toExternalForm());
 
+        // Display GUI
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
+    // Display Tab Content
     private void showCategoryContent(VBox content) {
         root.getChildren().clear();
         root.getChildren().add(content);
