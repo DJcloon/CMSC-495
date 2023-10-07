@@ -11,7 +11,7 @@ import javafx.stage.Stage;
 public class Main extends Application {
     private StackPane root;
     private String currentTab = "Cruises";
-    CreateShipDatabase database = new CreateShipDatabase();
+    static CLMS clms;
     
     @Override
     public void start(Stage primaryStage) {
@@ -37,7 +37,7 @@ public class Main extends Application {
         CruisesContent cruisesContent = new CruisesContent();
         cruisesContent.initialize();
 
-        MaintenanceContent maintenanceContent = new MaintenanceContent(database);
+        MaintenanceContent maintenanceContent = new MaintenanceContent();
         maintenanceContent.initialize();
 
         ManifestContent manifestContent = new ManifestContent();
@@ -97,6 +97,8 @@ public class Main extends Application {
     }
 
     public static void main(String[] args) {
+        clms = new CLMS();
+        clms.ships[1].printShipDetails();
         launch(args);
     }
 }
