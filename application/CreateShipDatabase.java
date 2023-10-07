@@ -1,5 +1,4 @@
 package application;
-
 import java.sql.Connection;  
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -20,13 +19,15 @@ public class CreateShipDatabase {
 				DatabaseMetaData meta = conn.getMetaData();  
 				System.out.println("The driver name is " + meta.getDriverName());  
 				System.out.println("A new database has been created.");
-				createNewTable(conn, url);   
-				loadShip(conn);
+				//createNewTableShips(conn, url);
+				createNewTablePassengers(conn, url);
+				//loadShip(conn);
+				loadPassenger(conn);
 			}  
 		} catch (SQLException e) {System.out.println(e.getMessage());}  
 	}  
-
-	public static void createNewTable(Connection conn, String url) {  
+//UPDATE ships SET Maintenance = 2023 WHERE ID = 1; 
+	public static void createNewTableShips(Connection conn, String url) {  
 
 		// SQL statement for creating a new table  
 		String sql = "CREATE TABLE IF NOT EXISTS ships (\n"  
@@ -54,8 +55,78 @@ public class CreateShipDatabase {
 			System.out.println(e.getMessage());  
 		}  
 	}  
+	
+	public static void createNewTablePassengers(Connection conn, String url) {  
+
+		// SQL statement for creating a new table  
+		String sql = "CREATE TABLE IF NOT EXISTS passengers (\n"  
+				+ " id integer PRIMARY KEY,\n"  
+				+ " ShipName text NOT NULL,\n" 
+				+ " Name_First text NOT NULL,\n" 
+				+ " Name_Last text NOT NULL,\n"
+				+ " Email text NOT NULL,\n"
+				+ " CabinType integer real\n"
+				+ ");";  
+		try{  
+			Statement stmt = conn.createStatement();  
+			stmt.execute(sql);  
+		} catch (SQLException e) {  
+			System.out.println(e.getMessage());  
+		}  
+	} 
 	//Method to add ship to database	
-	public static void insert(Connection conn, String name, String company, String location, int tripLength, int numCabins, 
+	public static void insertPassenger(Connection conn, String shipName, String firstName, 
+			String lastName, String Email, int cabinType) {  
+		String sql = "INSERT INTO passengers(ShipName, " 
+					+ "Name_First, " 
+					+ "Name_Last, "
+					+ "Email, "
+					+ "CabinType) "
+					+ "VALUES(?,?,?,?,?)";  
+
+		try{  
+			PreparedStatement pstmt = conn.prepareStatement(sql);  
+
+			pstmt.setString(1, shipName);  
+			pstmt.setString(2, firstName);
+			pstmt.setString(3, lastName);
+			pstmt.setString(4, Email);
+			pstmt.setInt(5, cabinType);
+			pstmt.executeUpdate();  
+		} catch (SQLException e) {  
+			System.out.println(e.getMessage());  
+		}  
+	}  
+	
+	public static void selectAllPassengers(Connection conn){  
+		String sql = "SELECT * FROM passengers";  
+
+		try {  
+			Statement stmt  = conn.createStatement();  
+			ResultSet rs    = stmt.executeQuery(sql);  
+
+			// loop through the result set  
+			while (rs.next()) {  
+				System.out.println(rs.getInt("id")+  "\t" +
+						rs.getString("ShipName")+  "\t" +
+						rs.getString("Name_First")+  "\t" +
+						rs.getString("Name_Last")+  "\t" +
+						rs.getString("Email")+  "\t" +
+						rs.getInt("CabinType"));  
+			}  
+		} catch (SQLException e) {  
+			System.out.println(e.getMessage());  
+		}  
+	} 
+	
+	public static void loadPassenger(Connection conn) {
+		insertPassenger(conn, "Carnival Paradise", "Steve", 
+				 "Jobs", "Steve.jobs@msn.com", 1);
+	}
+	
+	
+	//Method to add ship to database	
+	public static void insertShip(Connection conn, String name, String company, String location, int tripLength, int numCabins, 
 			int yearOfBuild, int maintenance, int maxCapacity,String origin, String finalDestination, 
 			String destination1,String destination2, String destination3, String destination4, String destination5) {  
 		String sql = "INSERT INTO ships(ShipName, "
@@ -102,62 +173,62 @@ public class CreateShipDatabase {
 	//method to preload ship data to SQLite Database
 	public static void loadShip(Connection conn) {
 			
-		insert(conn, "Carnival Paradise", "Carnival Cruise Line",
+		insertShip(conn, "Carnival Paradise", "Carnival Cruise Line",
 				"https://www.cruisemapper.com/?imo=9120877",
 				4, 61, 1998, 2021, 183,
 				"Tampa, Florida", "Tampa, Florida",
 				"Cozumel, Mexico", "", "", "", "");
-		insert(conn, "Carnival Legend", "Carnival Cruise Line",
+		insertShip(conn, "Carnival Legend", "Carnival Cruise Line",
 				"https://www.cruisemapper.com/?imo=9224726",
 				6,62,2002,2021,186,
 				"Baltimore, Maryland", "Baltimore, Maryland",
 				"Kings Wharf, Bermuda", "", "", "", "");
-		insert(conn, "Carnival Panorama","Carnival Cruise Line",
+		insertShip(conn, "Carnival Panorama","Carnival Cruise Line",
 				"https://www.cruisemapper.com/?imo=9802384",
 				7,965,2019,2024,2895,
 				"Los Angeles, California","Los Angeles, California"
 				,"Puerto Vallarta, Mexico","Mazatlan, Mexico","Cabo San Lucas, Mexico","","");
-		insert(conn, "Carnival Vista","Carnival Cruise Line",
+		insertShip(conn, "Carnival Vista","Carnival Cruise Line",
 				"https://www.cruisemapper.com/?imo=9692569"
 				,7,965,2016,0,2895,
 				"Galveston, Texas","Galveston, Texas",
 				"Roatan Island, Honduras","Belize City, Belize","Cozumel, Mexico","","");
-		insert(conn, "Disney Wish","Disney Cruise Line",
+		insertShip(conn, "Disney Wish","Disney Cruise Line",
 				"https://www.cruisemapper.com/?imo=9834739",
 				4,238,2022,0,714,
 				"Orlando, Florida","Orlando, Florida",
 				"Nassau, Bahamas","Disney Castaway Island, Bahamas","","","");
-		insert(conn, "Disney Magic","Disney Cruise Line",
+		insertShip(conn, "Disney Magic","Disney Cruise Line",
 				"https://www.cruisemapper.com/?imo=9126807",
 				4,877,1998,2023,2631,
 				"Miami, Florida","Miami, Florida",
 				"Nassau, Bahamas","Disney Castaway Island, Bahamas","","","");
-		insert(conn, "Disney Wonder","Disney Cruise Line",
+		insertShip(conn, "Disney Wonder","Disney Cruise Line",
 				"https://www.cruisemapper.com/?imo=9126819",
 				7,877,1999,2023,2631,
 				"Vancouver, Canada","Vancouver, Canada",
 				"Skagway, Alaska","Juneau, Alaska","Ketchikan, Alaska","","");
-		insert(conn, "Marella Discovery","Marella Cruises",
+		insertShip(conn, "Marella Discovery","Marella Cruises",
 				"https://www.cruisemapper.com/?imo=9070632",
 				7,915,1996,2022,2745,
 				"Orlando, Florida","Orlando, Florida",
 				"Puerto Plata, Dominican Republic","Grand Turk Island, Turks and Caicos Islands","Nassau, Bahamas","Miami, Florida","");
-		insert(conn, "Marella Voyager","Marella Cruises",
+		insertShip(conn, "Marella Voyager","Marella Cruises",
 				"https://www.cruisemapper.com/?imo=9106302",
 				7,956,1997,2023,2868,
 				"Palma de Mallorca, Spain","Palma de Mallorca, Spain",
 				"Olbia, Italy","Naples, Italy","Piombino, Italy","Nice, France","Palamos, Spain");
-		insert(conn, "Marella Explorer","Marella Cruises",
+		insertShip(conn, "Marella Explorer","Marella Cruises",
 				"https://www.cruisemapper.com/?imo=9106297",
 				7,962,1996,2021,2886,
 				"Corfu Island, Greece","Corfu Island, Greece",
 				"Koper, Slovenia","Ravenna, Italy","Split, Croatia","Dubrovnik, Croatia","Kotor, Montenegro");
-		insert(conn, "Oceania Insignia","Oceania Cruises",
+		insertShip(conn, "Oceania Insignia","Oceania Cruises",
 				"https://www.cruisemapper.com/?imo=9156462",
 				7,349,1998,2022,1047,
 				"New York City, New York","New York City, New York"
 				,"St George, Bermuda","Hamilton, Bermuda","","","");
-		insert(conn, "Oceania Allura","Oceania Cruises",
+		insertShip(conn, "Oceania Allura","Oceania Cruises",
 				"x",
 				0,613,2025,0,1839,
 				"x","x"
@@ -220,7 +291,8 @@ public class CreateShipDatabase {
     }  
 	
 	public static void main(String[] args) {  
-		//createNewDatabase(); 
-		selectAll(connect());
+		createNewDatabase(); 
+		//selectAll(connect());
+		selectAllPassengers(connect());
 	}
 }  
