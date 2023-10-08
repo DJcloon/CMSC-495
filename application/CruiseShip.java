@@ -1,6 +1,6 @@
 package application;
 
-public class CruiseShip extends CruiseCompany {
+public class CruiseShip {
 
 	//variables
 	 int shipID;
@@ -26,11 +26,12 @@ public class CruiseShip extends CruiseCompany {
 	public CruiseShip(int shipID, String name, String company, String location, int tripLength, int numCabins, 
     		int yearOfBuild, int maintenance, int maxCapacity,String origin, String finalDestination, 
     		String destination1,String destination2, String destination3, String destination4, String destination5) {
-		super(company);
+		this.company = company;
 		this.shipID = shipID;
 		this.name = name;
 		this.location = location;
 		this.origin = origin;
+		this.finalDestination = finalDestination;
 		this.destination1 = destination1;
 		this.destination2 = destination2;
 		this.destination3 = destination3;
@@ -87,3 +88,4 @@ public class CruiseShip extends CruiseCompany {
 	    		 destination1 + destination2 + destination3 + destination4 + destination5);
 	}
 }
+
