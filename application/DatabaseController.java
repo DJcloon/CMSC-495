@@ -8,7 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 
-public class CreateShipDatabase {  
+public class DatabaseController {  
 
 	static String url = "jdbc:sqlite:src/application/CLMSv2.db";  
 
