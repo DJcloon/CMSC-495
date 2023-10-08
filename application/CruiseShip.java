@@ -73,6 +73,7 @@ public class CruiseShip extends CruiseCompany {
 		}
 	public void setMaintenance(int maintenance) {
 		this.maintenance = maintenance;
+		DatabaseController.updateShip(shipID+1, maintenance);
 	}
 	public int getMaxCapacity(){
 		return maxCapacity;
