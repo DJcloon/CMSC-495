@@ -60,6 +60,24 @@ public class CruiseShip {
 	public String getorigin(){
 		return origin;
 		}
+	public String getFinalDestination() {
+		return finalDestination;
+	}
+	public String getDestination1() {
+		return destination1;
+	}
+	public String getDestination2() {
+		return destination2;
+	} 
+	public String getDestination3() {
+		return destination3;
+	} 
+	public String getDestination4() {
+		return destination4;
+	} 
+	public String getDestination5() {
+		return destination5;
+	} 
 	public int getTripLength(){
 		return tripLength;
 		}
