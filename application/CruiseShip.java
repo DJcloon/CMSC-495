@@ -80,5 +80,9 @@ public class CruiseShip extends CruiseCompany {
 	public int getAvailableCabins() {
 		return getNumCabins() - cabins.length;	
 		}
-
+		public void printShipDetails() {
+		System.out.println(shipID + name + company + location + tripLength + numCabins + 
+	    		yearOfBuild + maintenance + maxCapacity + origin + finalDestination + 
+	    		 destination1 + destination2 + destination3 + destination4 + destination5);
+	}
 }
