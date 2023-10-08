@@ -39,7 +39,7 @@ public class CruiseShip extends CruiseCompany {
 		this.tripLength = tripLength; 
 		this.numCabins = numCabins;
 		this.yearOfBuild = yearOfBuild;
-		this.setMaintenance(maintenance);
+		this.maintenance = maintenance;
 		this.maxCapacity = maxCapacity;
 	}
 	
@@ -81,7 +81,7 @@ public class CruiseShip extends CruiseCompany {
 	public int getAvailableCabins() {
 		return getNumCabins() - cabins.length;	
 		}
-		public void printShipDetails() {
+	public void printShipDetails() {
 		System.out.println(shipID + name + company + location + tripLength + numCabins + 
 	    		yearOfBuild + maintenance + maxCapacity + origin + finalDestination + 
 	    		 destination1 + destination2 + destination3 + destination4 + destination5);
