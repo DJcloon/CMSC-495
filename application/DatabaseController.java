@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-
 public class DatabaseController {  
 
 	static String url = "jdbc:sqlite:src/application/CLMSv2.db";  
@@ -20,13 +19,13 @@ public class DatabaseController {
 				System.out.println("The driver name is " + meta.getDriverName());  
 				System.out.println("A new database has been created.");
 				//createNewTableShips(conn, url);
-				createNewTablePassengers(conn, url);
+				//createNewTablePassengers(conn, url);
 				//loadShip(conn);
-				loadPassenger(conn);
+				//loadPassenger(conn);
 			}  
 		} catch (SQLException e) {System.out.println(e.getMessage());}  
 	}  
-//UPDATE ships SET Maintenance = 2023 WHERE ID = 1; 
+
 	public static void createNewTableShips(Connection conn, String url) {  
 
 		// SQL statement for creating a new table  
@@ -55,7 +54,7 @@ public class DatabaseController {
 			System.out.println(e.getMessage());  
 		}  
 	}  
-	
+
 	public static void createNewTablePassengers(Connection conn, String url) {  
 
 		// SQL statement for creating a new table  
@@ -78,11 +77,11 @@ public class DatabaseController {
 	public static void insertPassenger(Connection conn, String shipName, String firstName, 
 			String lastName, String Email, int cabinType) {  
 		String sql = "INSERT INTO passengers(ShipName, " 
-					+ "Name_First, " 
-					+ "Name_Last, "
-					+ "Email, "
-					+ "CabinType) "
-					+ "VALUES(?,?,?,?,?)";  
+				+ "Name_First, " 
+				+ "Name_Last, "
+				+ "Email, "
+				+ "CabinType) "
+				+ "VALUES(?,?,?,?,?)";  
 
 		try{  
 			PreparedStatement pstmt = conn.prepareStatement(sql);  
@@ -97,7 +96,7 @@ public class DatabaseController {
 			System.out.println(e.getMessage());  
 		}  
 	}  
-	
+
 	public static void selectAllPassengers(Connection conn){  
 		String sql = "SELECT * FROM passengers";  
 
@@ -118,13 +117,13 @@ public class DatabaseController {
 			System.out.println(e.getMessage());  
 		}  
 	} 
-	
+
 	public static void loadPassenger(Connection conn) {
 		insertPassenger(conn, "Carnival Paradise", "Steve", 
-				 "Jobs", "Steve.jobs@msn.com", 1);
+				"Jobs", "Steve.jobs@msn.com", 1);
 	}
-	
-	
+
+
 	//Method to add ship to database	
 	public static void insertShip(Connection conn, String name, String company, String location, int tripLength, int numCabins, 
 			int yearOfBuild, int maintenance, int maxCapacity,String origin, String finalDestination, 
@@ -169,10 +168,10 @@ public class DatabaseController {
 			System.out.println(e.getMessage());  
 		}  
 	}  
-	
+
 	//method to preload ship data to SQLite Database
 	public static void loadShip(Connection conn) {
-			
+
 		insertShip(conn, "Carnival Paradise", "Carnival Cruise Line",
 				"https://www.cruisemapper.com/?imo=9120877",
 				4, 61, 1998, 2021, 183,
@@ -233,14 +232,31 @@ public class DatabaseController {
 				0,613,2025,0,1839,
 				"x","x"
 				,"x","","","","");
-		
-		
+
+
 		/*insert(conn, name, company, 
 		 * location, 
 		 * tripLength, numCabins, yearOfBuild, maintenance, maxCapacity, 
 		 * origin, finalDestination, 
 		 * destination1, destination2, destination3, destination4, destination5);*/
 	}
+
+
+	public static void updateShip(int ShipID, int maintenanceDate) {
+		String sql = "UPDATE ships SET Maintenance = ? WHERE ID = ?";
+
+        try (Connection conn = connect();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            // set the corresponding param
+            pstmt.setInt(1, maintenanceDate);
+            pstmt.setInt(2, ShipID);
+            // update 
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
 
 	public static void selectAll(Connection conn){  
 		String sql = "SELECT * FROM ships";  
@@ -277,22 +293,24 @@ public class DatabaseController {
 		Connection conn = null;  
 
 		try {  
-            // db parameters  
-            // create a connection to the database  
-            conn = DriverManager.getConnection(url);  
-              
-            System.out.println("Connection to SQLite has been established.");  
-              
-        } catch (SQLException e) {  
-            System.out.println(e.getMessage());  
-        }   
-        
-        return conn;
-    }  
-	
+			// db parameters  
+			// create a connection to the database  
+			conn = DriverManager.getConnection(url);  
+
+			System.out.println("Connection to SQLite has been established.");  
+
+		} catch (SQLException e) {  
+			System.out.println(e.getMessage());  
+		}   
+
+		return conn;
+	}  
+
 	public static void main(String[] args) {  
-		createNewDatabase(); 
+		//createNewDatabase(); 
 		//selectAll(connect());
-		selectAllPassengers(connect());
+		//selectAllPassengers(connect());
+		
+		
 	}
 }  
