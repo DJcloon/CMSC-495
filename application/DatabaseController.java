@@ -6,6 +6,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DatabaseController {  
 
@@ -304,7 +306,41 @@ public class DatabaseController {
 		}   
 
 		return conn;
-	}  
+	}
+
+	public static List<CruiseShip> getAllShips() {
+		List<CruiseShip> ships = new ArrayList<>();
+		String sql = "SELECT * FROM ships";
+
+		try (Connection conn = connect();
+				Statement stmt = conn.createStatement();
+				ResultSet rs = stmt.executeQuery(sql)) {
+
+			while (rs.next()) {
+				CruiseShip ship = new CruiseShip(
+						rs.getInt("id"),
+						rs.getString("ShipName"),
+						rs.getString("ShipCompany"),
+						rs.getString("Location"),
+						rs.getInt("TripLength"),
+						rs.getInt("Cabins"),
+						rs.getInt("YearOfBuild"),
+						rs.getInt("Maintenance"),
+						rs.getInt("Capacity"),
+						rs.getString("Origin"),
+						rs.getString("FinalDestination"),
+						rs.getString("Destination1"),
+						rs.getString("Destination2"),
+						rs.getString("Destination3"),
+						rs.getString("Destination4"),
+						rs.getString("Destination5"));
+				ships.add(ship);
+			}
+		} catch (SQLException e) {
+			System.out.println(e.getMessage());
+		}
+		return ships;
+	}
 
 	public static void main(String[] args) {  
 		//createNewDatabase(); 
