@@ -1,5 +1,8 @@
 package application;
 import javafx.scene.layout.ColumnConstraints;
+import java.sql.Connection;  
+import java.sql.DriverManager;  
+import java.sql.SQLException;  
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -9,6 +12,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ComboBox;
 import javafx.scene.image.Image;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.scene.image.ImageView;
 import javafx.geometry.Pos;
@@ -16,6 +20,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
 import javafx.scene.control.DatePicker;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -43,10 +48,18 @@ public class CruisesContent extends ContentArea {
     InputStream cabinImageURL;
     ImageView cabinView;
     Image cabinImage;
-//    Label 
+    Label cabinType;
+    Label cabinAmenities;
     
+    // Windows
+    boolean lodgingWindow;
+    boolean passengerWindow;
+    boolean billingWindow;
     
-    public CruisesContent() {
+    // Database
+    CLMS db;
+    
+    public CruisesContent(CLMS db) {
     	
 		shipName = new Label("");
 		shipCruiseLine = new Label("");
@@ -61,8 +74,13 @@ public class CruisesContent extends ContentArea {
 		estCost = new Label("$0.00");
         passengerCount = new Spinner<Integer>(1, 10, 1);
         cabinView = new ImageView();
+        cabinType = new Label("null");
+        cabinAmenities = new Label("null");
+        lodgingWindow = false;
+        passengerWindow = false;
+        billingWindow = false;
+        this.db = db;
     }
- 
     
     @Override
     public void initialize() {
@@ -71,9 +89,11 @@ public class CruisesContent extends ContentArea {
 
         Label searchLabel = new Label("Select ship by name");
         
-        ComboBox<String> searchComboBox = new ComboBox<String>(); // This needs to be set to ships
+        ComboBox<String> searchComboBox = new ComboBox<String>();
         searchComboBox.setPrefSize(200, 25);
         searchComboBox.setItems(getShips());
+        searchComboBox.getSelectionModel().selectFirst();
+        updateCruiseInfo(searchComboBox.getValue());
         
         // search box
         HBox searchContainer = new HBox(searchLabel, searchComboBox);
@@ -84,8 +104,8 @@ public class CruisesContent extends ContentArea {
         GridPane shipInfoContainer = new GridPane();
 
         shipView.setImage(shipImage);
-        shipView.setFitHeight(200);
-        shipView.setFitWidth(200);
+        shipView.setFitHeight(350);
+        shipView.setFitWidth(350);
         shipView.setPreserveRatio(true);
         
         shipInfoContainer.add(shipName, 0, 0);
@@ -98,6 +118,8 @@ public class CruisesContent extends ContentArea {
         // ship display box
         HBox shipBox = new HBox(shipView, shipInfoContainer);
         shipBox.setSpacing(15);
+        shipBox.setPrefWidth(800);
+        shipBox.setPrefHeight(300);
         
         shipBox.getStyleClass().add("ship-box");
         
@@ -120,13 +142,12 @@ public class CruisesContent extends ContentArea {
         // Event Listeners
         shipButton.setOnAction(e -> {
         	if (searchComboBox.getValue() != null) {
-            	openLodgingWindow();
+            	openLodgingWindow(searchComboBox.getValue());
         	}
         	else {
         		openErrorWindow("CRUISE");
         	}
         });
-        
         
         searchComboBox.valueProperty().addListener(new ChangeListener<String>() {
         	@Override public void changed(ObservableValue ov, String t, String t1) {
@@ -139,136 +160,253 @@ public class CruisesContent extends ContentArea {
         content.getStyleClass().add("overview-content");
     }
       
-    private void openLodgingWindow() {
-        Stage newStage = new Stage();
-        newStage.setTitle("Lodging");
+    private void openLodgingWindow(String selected) {
+    	String selectedShip = selected;
+    	if (!lodgingWindow ) {
+    		
+    		lodgingWindow = true;
+	        Stage newStage = new Stage();
+	        newStage.setTitle("Lodging");       
+	        GridPane lodgingLayout = new GridPane();
+	        Scene newScene = new Scene(lodgingLayout, 800, 400); // Adjust window size
+	
+	        lodgingLayout.setHgap(10); 
+	        lodgingLayout.setVgap(10);
+	        lodgingLayout.setStyle("-fx-padding: 20;");
+	
+	        // Fields
+	        ComboBox<String> cabinTypes = new ComboBox<String>(getCabins());
+	        cabinTypes.getSelectionModel().selectFirst();
+	        passengerCount.setPrefWidth(100);
+	        
+	        // lodging components
+	        HBox selectContainer = new HBox(new Label("Select Room "), cabinTypes);
+	        selectContainer.setSpacing(20);
+	        selectContainer.getStyleClass().add("search-box");
+	        HBox passengerContainer = new HBox(new Label("Passengers"), passengerCount);
+	        HBox estContainer = new HBox(new Label("Estimated Cost: "), estCost);
+	        
+	        HBox topMenu = new HBox(selectContainer, passengerContainer, estContainer);
+	        topMenu.setSpacing(15);
+	        
+	        HBox cabinInfo = new HBox();
+	      
+	        // Buttons
+		    Button reserveButton = new Button("Reserve");
+		    reserveButton.setDisable(true);
+	        Button bookButton = new Button("Book");
+	        cabinImageURL = getClass().getResourceAsStream("/application/images/cabins/" + cabinTypes.getValue() + ".jpg");
+	        cabinImage = new Image(cabinImageURL);
+	        cabinView.setImage(cabinImage);
+	        cabinView.setFitHeight(300);
+	        cabinView.setFitWidth(300);
+	        cabinView.setPreserveRatio(true);
+	        
+	        GridPane cabinInfoContainer = new GridPane();
+	        cabinInfoContainer.add(cabinType, 0, 0);
+	        cabinInfoContainer.add(cabinAmenities, 0, 1);
+	        
+	        cabinInfo.getChildren().addAll(cabinView, cabinInfoContainer);
+	        cabinInfo.setSpacing(15);
+	        
+	        // Add Components to layout
+	        lodgingLayout.add(topMenu, 0, 0);
+	        lodgingLayout.add(cabinInfo, 0, 3);
+	        lodgingLayout.add(bookButton, 0, 4); // Adjust column index
+	        lodgingLayout.add(reserveButton, 1, 4); // Adjust column index
+	        
+	        GridPane.setHgrow(lodgingLayout, Priority.ALWAYS);
+	        GridPane.setVgrow(lodgingLayout, Priority.ALWAYS);
+	        lodgingLayout.setMaxWidth(Double.MAX_VALUE);
+	
+	        // Event Listeners
+	        bookButton.setOnAction(e -> {
+	        	if (cabinTypes.getValue() != null) {
+	        		openPassengerWindow(passengerCount.getValue(), newStage);
+	        	}
+//	        	else if (selectedShip) {
+//	        		
+//	        	}
+	        	else {
+	        		openErrorWindow("CRUISE");
+	        	}
+	        });
+	        
+	        cabinTypes.valueProperty().addListener(new ChangeListener<String>() {
+	            @Override public void changed(ObservableValue ov, String t, String t1) {
+	            	updateLodgingInfo(t1, selectedShip);
+	              }
+	        });
+	        
+	        passengerCount.valueProperty().addListener((obs, oldValue, newValue) -> 
+	        updateLodgingInfo(cabinTypes.getValue(), selectedShip));
+	        
+	        updateLodgingInfo(cabinTypes.getValue(), selectedShip);
+	        
+	        newStage.setOnCloseRequest(e->{
+	        	lodgingWindow = false;
+	        });
+	        newStage.initModality(Modality.APPLICATION_MODAL);
+	        newStage.setScene(newScene);
+	        newStage.show();
 
-        GridPane lodgingLayout = new GridPane();
-        Scene newScene = new Scene(lodgingLayout, 600, 400); // Adjust window size
-
-        lodgingLayout.setHgap(10); 
-        lodgingLayout.setVgap(10);
-        lodgingLayout.setStyle("-fx-padding: 20;");
-
-        // Fields
-        ComboBox<String> cabinTypes = new ComboBox<String>(getCabins()); // Need to change to Room Type Object
-        cabinTypes.getSelectionModel().selectFirst();
-        passengerCount.setPrefWidth(60);
-
-        HBox cabinInfo = new HBox();
-      
-        // Buttons
-	    Button reserveButton = new Button("Reserve");
-	    reserveButton.setDisable(true);
-        Button bookButton = new Button("Book");
-        cabinImageURL = getClass().getResourceAsStream("/application/images/cabins/cabin.jpg");
-        cabinImage = new Image(cabinImageURL);
-        cabinView.setImage(cabinImage);
-        
-        GridPane cabinInfoContainer = new GridPane();
-//        cabinInfoContainer
-        
-        cabinInfo.getChildren().addAll(cabinView);
-        
-        // Add Components to layout
-        lodgingLayout.add(new HBox(new Label("Select Room "), cabinTypes), 0, 0);
-        lodgingLayout.add(new HBox(new Label("Passengers " ), passengerCount), 1, 0);
-        lodgingLayout.add(new HBox(new Label("Estimated Cost "), estCost), 2, 0);
-        lodgingLayout.add(cabinInfo, 0, 3);
-        lodgingLayout.add(bookButton, 0, 4); // Adjust column index
-        lodgingLayout.add(reserveButton, 1, 4); // Adjust column index
-
-        // Event Listeners
-        bookButton.setOnAction(e -> {
-        	if (cabinTypes.getValue() != null) {
-        		openBillingWindow();
-        	}
-        	else {
-        		openErrorWindow("CRUISE");
-        	}
-        });
-        
-        cabinTypes.valueProperty().addListener(new ChangeListener<String>() {
-            @Override public void changed(ObservableValue ov, String t, String t1) {
-            	updateLodgingInfo(t1);
-              }
-        });
-        
-        
-        newStage.setScene(newScene);
-        newStage.show();
+    	}
+    	
     }
 
-    private void openBillingWindow() {
-        Stage newStage = new Stage();
-        newStage.setTitle("Billing");
-
-        GridPane billingPane = new GridPane();
-        Scene newScene = new Scene(billingPane, 400, 400);
-
-        billingPane.setHgap(10);
-        billingPane.setVgap(10);
-        billingPane.setStyle("-fx-padding: 20;");
-
-        // Define column constraints
-        ColumnConstraints col1 = new ColumnConstraints(100);
-        ColumnConstraints col2 = new ColumnConstraints(250);
-        billingPane.getColumnConstraints().addAll(col1, col2);
-
-        // Define row constraints
-        for (int i = 0; i < 7; i++) {
-            RowConstraints row = new RowConstraints(40);
-            billingPane.getRowConstraints().add(row);
-        }
-
-        // Add labels and input fields
-        Label firstNameLabel = new Label("First Name:");
-        TextField firstNameField = new TextField();
-
-        Label lastNameLabel = new Label("Last Name:");
-        TextField lastNameField = new TextField();
-
-        Label emailLabel = new Label("Email:");
-        TextField emailField = new TextField();
-
-        Label paymentMethodLabel = new Label("Payment Method:");
-        ComboBox<String> paymentMethodComboBox = new ComboBox<>();
-        paymentMethodComboBox.getItems().addAll("Credit Card", "PayPal", "Bank Transfer");
-
-        Label cardNumberLabel = new Label("Card Number:");
-        TextField cardNumberField = new TextField();
-
-        Label expiryDateLabel = new Label("Expiry Date:");
-        DatePicker expiryDatePicker = new DatePicker();
-
-        Button payButton = new Button("Complete");
-        Button cancelButton = new Button("Cancel");
-
-        billingPane.add(firstNameLabel, 0, 0);
-        billingPane.add(firstNameField, 1, 0);
-
-        billingPane.add(lastNameLabel, 0, 1);
-        billingPane.add(lastNameField, 1, 1);
-
-        billingPane.add(emailLabel, 0, 2);
-        billingPane.add(emailField, 1, 2);
-
-        billingPane.add(paymentMethodLabel, 0, 3);
-        billingPane.add(paymentMethodComboBox, 1, 3);
-
-        billingPane.add(cardNumberLabel, 0, 4);
-        billingPane.add(cardNumberField, 1, 4);
-
-        billingPane.add(expiryDateLabel, 0, 5);
-        billingPane.add(expiryDatePicker, 1, 5);
-
-        HBox buttonBox = new HBox(cancelButton, payButton);
-        buttonBox.setAlignment(Pos.CENTER); 
-        billingPane.add(buttonBox, 0, 6, 2, 1);
-        HBox.setMargin(cancelButton, new Insets(10,10,10,10));
-        newStage.setScene(newScene);
-        newStage.show();
+    private void openBillingWindow(Stage lodgingStage, Stage passengerStage) {
+    	if (!billingWindow) {
+	        Stage newStage = new Stage();
+	        newStage.setTitle("Billing");
+	        billingWindow = true;;
+	        GridPane billingPane = new GridPane();
+	        Scene newScene = new Scene(billingPane, 400, 400);
+	
+	        billingPane.setHgap(10);
+	        billingPane.setVgap(10);
+	        billingPane.setStyle("-fx-padding: 20;");
+	
+	        // Define column constraints
+	        ColumnConstraints col1 = new ColumnConstraints(100);
+	        ColumnConstraints col2 = new ColumnConstraints(250);
+	        billingPane.getColumnConstraints().addAll(col1, col2);
+	
+	        // Define row constraints
+	        for (int i = 0; i < 7; i++) {
+	            RowConstraints row = new RowConstraints(40);
+	            billingPane.getRowConstraints().add(row);
+	        }
+	
+	        // Add labels and input fields
+	        Label firstNameLabel = new Label("First Name:");
+	        TextField firstNameField = new TextField();
+	
+	        Label lastNameLabel = new Label("Last Name:");
+	        TextField lastNameField = new TextField();
+	
+	        Label emailLabel = new Label("Email:");
+	        TextField emailField = new TextField();
+	
+	        Label paymentMethodLabel = new Label("Payment Method:");
+	        ComboBox<String> paymentMethodComboBox = new ComboBox<>();
+	        paymentMethodComboBox.getItems().addAll("Credit Card", "PayPal", "Bank Transfer");
+	
+	        Label cardNumberLabel = new Label("Card Number:");
+	        TextField cardNumberField = new TextField();
+	
+	        Label expiryDateLabel = new Label("Expiry Date:");
+	        DatePicker expiryDatePicker = new DatePicker();
+	
+	        Button payButton = new Button("Complete");
+	        Button cancelButton = new Button("Cancel");
+	
+	        billingPane.add(firstNameLabel, 0, 0);
+	        billingPane.add(firstNameField, 1, 0);
+	
+	        billingPane.add(lastNameLabel, 0, 1);
+	        billingPane.add(lastNameField, 1, 1);
+	
+	        billingPane.add(emailLabel, 0, 2);
+	        billingPane.add(emailField, 1, 2);
+	
+	        billingPane.add(paymentMethodLabel, 0, 3);
+	        billingPane.add(paymentMethodComboBox, 1, 3);
+	
+	        billingPane.add(cardNumberLabel, 0, 4);
+	        billingPane.add(cardNumberField, 1, 4);
+	
+	        billingPane.add(expiryDateLabel, 0, 5);
+	        billingPane.add(expiryDatePicker, 1, 5);
+	
+	        HBox buttonBox = new HBox(cancelButton, payButton);
+	        buttonBox.setAlignment(Pos.CENTER); 
+	        billingPane.add(buttonBox, 0, 6, 2, 1);
+	        HBox.setMargin(cancelButton, new Insets(10,10,10,10));
+	        
+	        newStage.initModality(Modality.APPLICATION_MODAL);
+	        newStage.setScene(newScene);
+	        newStage.show();
+	                
+	        payButton.setOnAction(e-> {
+	        	newStage.close();
+	        	passengerStage.close();
+	        	lodgingStage.close();
+	        	lodgingWindow = false;
+	        	passengerWindow = false;
+	        	billingWindow = false;
+	        });
+	        
+	        cancelButton.setOnAction(e -> {
+	        	newStage.close();
+	        	billingWindow = false;
+	        });
+	        
+	        newStage.setOnCloseRequest(e->{
+	        	billingWindow = false;
+	        });
+    	}
     }
+    
+    // Opens Passenger window (need to add in value if room is booked can't proceed)
+    private void openPassengerWindow(int passengers, Stage lodgingStage) {
+    	if (!passengerWindow) {
+    		passengerWindow = true;
+	        Stage passengerStage = new Stage();
+	        passengerStage.setTitle("Passenger Information Form");
+	
+	        GridPane grid = new GridPane();
+	        grid.setHgap(10);
+	        grid.setVgap(10);
+	        grid.setPadding(new Insets(10, 10, 10, 10)); // Add padding to the grid
+	
+	        // Define column constraints
+	        ColumnConstraints col1 = new ColumnConstraints(150);
+	        ColumnConstraints col2 = new ColumnConstraints(150);
+	        grid.getColumnConstraints().addAll(col1, col2);
+	
+	        // Create input fields for passenger information
+	        for (int i = 0; i < passengers; i++) {
+	            Label firstNameLabel = new Label("Passenger " + (i + 1) + " First Name:");
+	            TextField firstNameField = new TextField();
+	            Label lastNameLabel = new Label("Last Name:");
+	            TextField lastNameField = new TextField();
+	
+	            int row = i * 4; // Adjust the row index to ensure fields are aligned horizontally
+	
+	            // Add some spacing to the left of the labels
+	            HBox firstNameBox = new HBox(10); // Adjust the spacing as needed
+	            firstNameBox.getChildren().addAll(firstNameLabel);
+	            
+	            HBox lastNameBox = new HBox(10); // Adjust the spacing as needed
+	            lastNameBox.getChildren().addAll(lastNameLabel);
+	
+	            grid.add(firstNameBox, 0, row);
+	            grid.add(firstNameField, 1, row);
+	            grid.add(lastNameBox, 0, row + 1);
+	            grid.add(lastNameField, 1, row + 1);
+	        }
+	
+	        Button submitButton = new Button("Submit");
+	        GridPane.setHalignment(submitButton, HPos.RIGHT);
+	        int numRows = passengers * 4 + 1; // Calculate the number of rows required
+	
+	        grid.add(submitButton, 1, numRows);
+	
+	        submitButton.setOnAction(event -> {
+	        	openBillingWindow(passengerStage, lodgingStage);
+	        });
+	
+	        Scene scene = new Scene(grid, 400, 30 + numRows * 25); // Adjust the height based on numRows
+	        passengerStage.initModality(Modality.APPLICATION_MODAL);
+	        passengerStage.setScene(scene);
+	        passengerStage.show();
+	               
+	        passengerStage.setOnCloseRequest(e->{
+	        	passengerWindow = false;
+	        });
+    	}
+    }
+
     
     private void openErrorWindow(String error) {
         Stage newStage = new Stage();
@@ -283,79 +421,89 @@ public class CruisesContent extends ContentArea {
         close.setOnAction(e -> newStage.close());
         errorPane.add(new Label("SELECT A " + error), 0, 0);
         errorPane.add(close, 0, 1);
-
+        newStage.initModality(Modality.APPLICATION_MODAL);
         newStage.setScene(newScene);
         newStage.show();
+        
     }
     
-    // Updates Room Information (Need to update)
-    private void updateLodgingInfo(String cabin) {
-    	int cost = 0;
+    private void updateLodgingInfo(String cabin, String selected) {
     	switch (cabin) {
-			case "Cabin 1":
-				cost = 400;
-				break;
-			case "Cabin 2":
-				cost = 600;
-				break;
-			case "Cabin 3":
-				cost = 800;
-				break;
+		case "Standard Cabin":
+			cabinAmenities.setText("Porthole, Toilet");
+	    	estCost.setText(String.valueOf(calculateCost(0)));
+	    	cabinImageURL = getClass().getResourceAsStream("/application/images/cabins/Standard Cabin.jpg");
+			break;
+		case "Deluxe Cabin":
+			cabinAmenities.setText("Window, Toilet");
+	    	estCost.setText(String.valueOf(calculateCost(1)));
+	    	cabinImageURL = getClass().getResourceAsStream("/application/images/cabins/Deluxe Cabin.jpg");
+			break;
+		case "Premium Cabin":
+			cabinAmenities.setText("Balcony, Bath, Toilet");
+	    	estCost.setText(String.valueOf(calculateCost(2)));
+	    	cabinImageURL = getClass().getResourceAsStream("/application/images/cabins/Premium Cabin.jpg");
+			break;
+		case "Spa Cabin":
+			cabinAmenities.setText("Balcony, Bath, Toilet, Storage Closet");
+	    	estCost.setText(String.valueOf(calculateCost(3)));
+	    	cabinImageURL = getClass().getResourceAsStream("/application/images/cabins/Spa Cabin.jpg");
+			break;
     	}
-   		Integer totalCost = cost*passengerCount.getValue();
-    	estCost.setText(totalCost.toString());
-    }
+    	cabinImage = new Image(cabinImageURL);
+        cabinView.setImage(cabinImage);
+       }
     
     // Updates Cruise Information (Need to update)
-    private void updateCruiseInfo(String ship) {
-        
-        // this will get just get all the info from database
-    	// temporary case statement for testing purposes
-    	switch (ship) {
-    		case "Item 1":
-    			imageURL = getClass().getResourceAsStream("/application/images/ships/ship.jpg");
-    			shipName.setText("Ship 1");
-    			shipCruiseLine.setText("Cruise 1");
-    			tripLength.setText("99");
-    			yearBuilt.setText("1992");
-    			origin.setText("Start");
-    			finalDestination.setText("End");
-    			passengers.setText("123");
-    			break;
-    		case "Item 2":
-    			imageURL = getClass().getResourceAsStream("/application/images/ships/ship2.jpg");
-    			shipName.setText("Ship 2");
-    			shipCruiseLine.setText("Cruise 2");
-    			tripLength.setText("8");
-    			yearBuilt.setText("1876");
-    			origin.setText("Start 2");
-    			finalDestination.setText("End 2");
-    			passengers.setText("1234");
-    			break;
-    		case "Item 3":
-    			imageURL = getClass().getResourceAsStream("/application/images/ships/empty.jpg");
-    			shipName.setText("Ship 3");
-    			shipCruiseLine.setText("Cruise 3");
-    			tripLength.setText("12");
-    			yearBuilt.setText("1784");
-    			origin.setText("Start 3");
-    			finalDestination.setText("End 3");
-    			passengers.setText("555");
-    			break;
-    	}
+    private void updateCruiseInfo(String ship) {  	
+        for (CruiseShip cruiseShip : CLMS.ships) {
+            if (cruiseShip.getName().trim() == ship) {
+            	String img = cruiseShip.getName().replace('\u00A0', ' ').trim();
+    			imageURL = getClass().getResourceAsStream("/application/images/ships/" + img + ".jpg");
+    			shipName.setText(img);
+    			shipCruiseLine.setText(cruiseShip.getCompany()); // replace with company
+    			tripLength.setText(String.valueOf(cruiseShip.getTripLength()));
+    			yearBuilt.setText(String.valueOf(cruiseShip.getYearOfBuild()));
+    			origin.setText(cruiseShip.getorigin());
+    			finalDestination.setText("FINAL DESTINATION"); // replace with final destination
+    			passengers.setText(String.valueOf(cruiseShip.getMaxCapacity()));
+            }
+        }
     	shipImage = new Image(imageURL);
         shipView.setImage(shipImage);
     }
     
     // Get Ships from database (Need to update)
     private ObservableList<String> getShips() {
-    	return FXCollections.observableArrayList("Item 1", "Item 2", "Item 3");
+        ObservableList<String> shipNames = FXCollections.observableArrayList();
+        for (CruiseShip cruiseShip : CLMS.ships) {
+            shipNames.add(cruiseShip.getName());
+        }
+            return shipNames;
     }
-    
+
     // Gets Rooms from database (Need to Update)
     private ObservableList<String> getCabins() {
-    	return FXCollections.observableArrayList("Cabin 1", "Cabin 2", "Cabin 3");
+    	return FXCollections.observableArrayList("Standard Cabin", "Deluxe Cabin", "Premium Cabin", "Spa Cabin");
     }
     
+    public int calculateCost(int cabinType) {
+    	int cost = 0;
+    	switch (cabinType) {
+	    	case 0: 
+	    		cost = 400;
+	    		break;
+	    	case 1:
+	    		cost = 600;
+	    		break;
+	    	case 2:
+	    		cost = 800;
+	    		break;
+	    	case 3:
+	    		cost = 1000;
+	    		break;
+    	 }
+    	return cost*passengerCount.getValue();
+    }
     
 }
