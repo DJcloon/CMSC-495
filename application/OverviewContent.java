@@ -1,7 +1,10 @@
 package application;
+
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Worker.State;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -14,6 +17,10 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.StackPane;
@@ -23,6 +30,7 @@ import javafx.scene.image.ImageView;
 
 public class OverviewContent extends ContentArea {
     private Stage primaryStage;
+    private VBox category2;
 
     @Override
     public void initialize() {
@@ -39,7 +47,7 @@ public class OverviewContent extends ContentArea {
         GridPane gridPane = new GridPane();
         gridPane.setHgap(10); // Horizontal spacing
         gridPane.setVgap(20); // Vertical spacing
-        
+
         WebView webView = new WebView();
         WebEngine webEngine = webView.getEngine();
 
@@ -47,7 +55,15 @@ public class OverviewContent extends ContentArea {
 
         // Define the four categories (replace with actual content)
         VBox category1 = new VBox(new Label("Category 1 Content"));
-        VBox category2 = new VBox(webView);
+        ImageView defaultImage = new ImageView(
+                getClass().getResource("/application/images/overview/overview.jpg").toExternalForm());
+        // Set the dimensions you want for the image
+        defaultImage.setFitWidth(200); // example width
+        defaultImage.setFitHeight(100); // example height
+        // Preserve the image's aspect ratio
+        defaultImage.setPreserveRatio(true);
+        category2 = new VBox(defaultImage);
+
         VBox category3 = new VBox(new Label("Category 3 Content"));
 
         // Add CSS styles to the categories
@@ -67,7 +83,7 @@ public class OverviewContent extends ContentArea {
         GridPane.setVgrow(gridPane, Priority.ALWAYS);
         gridPane.setMaxWidth(Double.MAX_VALUE);
         gridPane.setMaxHeight(Double.MAX_VALUE);
-        
+
         ColumnConstraints col1 = new ColumnConstraints();
         col1.setPercentWidth(50);
         ColumnConstraints col2 = new ColumnConstraints();
@@ -90,33 +106,72 @@ public class OverviewContent extends ContentArea {
 
     private void configureFileChooser(FileChooser fileChooser) {
         fileChooser.getExtensionFilters().addAll(
-            new FileChooser.ExtensionFilter("Excel Files", "*.xls", "*.xlsx")
-        );
+                new FileChooser.ExtensionFilter("Excel Files", "*.xls", "*.xlsx"));
     }
 
     public void setPrimaryStage(Stage primaryStage) {
         this.primaryStage = primaryStage;
     }
-    
-    private TableView<String> createShipTable() {
-        TableView<String> shipTable = new TableView<>();
-        shipTable.getStyleClass().add("overview-table");
 
-        TableColumn<String, String> shipColumn = new TableColumn<>("Ship");
-        shipColumn.setCellValueFactory(new PropertyValueFactory<>("ship"));
+    private TableView<CruiseShip> createShipTable() {
+        // Create a WebView to display the location
+        WebView webView = new WebView();
+        TableView<CruiseShip> shipTable = new TableView<>();
 
-        TableColumn<String, String> statusColumn = new TableColumn<>("Status");
-        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+        // Ship Name Column
+        TableColumn<CruiseShip, String> shipNameColumn = new TableColumn<>("Ship Name");
+        shipNameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
 
-        TableColumn<String, String> dportColumn = new TableColumn<>("Departure Port");
-        dportColumn.setCellValueFactory(new PropertyValueFactory<>("dport"));
-        
-        TableColumn<String, String> destinationColumn = new TableColumn<>("Destination");
-        destinationColumn.setCellValueFactory(new PropertyValueFactory<>("destination"));
+        // Company Column
+        TableColumn<CruiseShip, String> companyColumn = new TableColumn<>("Company");
+        companyColumn.setCellValueFactory(new PropertyValueFactory<>("company"));
 
-        shipTable.getColumns().addAll(shipColumn, statusColumn, dportColumn, destinationColumn);
-        
+        // Location Column (with hyperlink)
+        TableColumn<CruiseShip, Hyperlink> locationColumn = new TableColumn<>("Location");
+        locationColumn.setCellValueFactory(cellData -> {
+            String locationURL = cellData.getValue().getLocation();
+            Hyperlink hyperlink = new Hyperlink("View Location");
+            hyperlink.setOnAction(e -> {
+                webView.getEngine().load(locationURL);
+                category2.getChildren().clear();
+                category2.getChildren().add(webView);
+            });
+            return new SimpleObjectProperty<>(hyperlink);
+        });
+
+        // Trip Length Column
+        TableColumn<CruiseShip, Integer> tripLengthColumn = new TableColumn<>("Trip Length");
+        tripLengthColumn.setCellValueFactory(new PropertyValueFactory<>("tripLength"));
+
+        // Number of Cabins Column
+        TableColumn<CruiseShip, Integer> cabinsColumn = new TableColumn<>("Number of Cabins");
+        cabinsColumn.setCellValueFactory(new PropertyValueFactory<>("numCabins"));
+
+        // Year of Build Column
+        TableColumn<CruiseShip, Integer> yearOfBuildColumn = new TableColumn<>("Year of Build");
+        yearOfBuildColumn.setCellValueFactory(new PropertyValueFactory<>("yearOfBuild"));
+
+        // Capacity Column
+        TableColumn<CruiseShip, Integer> capacityColumn = new TableColumn<>("Capacity");
+        capacityColumn.setCellValueFactory(new PropertyValueFactory<>("maxCapacity"));
+
+        // Origin Column
+        TableColumn<CruiseShip, String> originColumn = new TableColumn<>("Origin");
+        originColumn.setCellValueFactory(new PropertyValueFactory<>("origin"));
+
+        // Destination Column
+        TableColumn<CruiseShip, String> destinationColumn = new TableColumn<>("Destination");
+        destinationColumn.setCellValueFactory(new PropertyValueFactory<>("finalDestination"));
+
+        // Adding all columns to the table
+        shipTable.getColumns().addAll(shipNameColumn, companyColumn, locationColumn, tripLengthColumn, cabinsColumn,
+                yearOfBuildColumn, capacityColumn, originColumn, destinationColumn);
+
+        // Fetch ships from the database and add them to the table
+        List<CruiseShip> ships = DatabaseController.getAllShips();
+        shipTable.getItems().addAll(ships);
 
         return shipTable;
     }
+
 }
