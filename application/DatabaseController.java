@@ -127,6 +127,31 @@ public class DatabaseController {
 				"Jobs", "Steve.jobs@msn.com", 1);
 	}
 
+	// Method to get all passengers from database
+
+	public static List<Passenger> getAllPassengersForTable() {
+		String sql = "SELECT * FROM passengers";
+		List<Passenger> passengers = new ArrayList<>();
+
+		try {
+			Statement stmt = getConn().createStatement();
+			ResultSet rs = stmt.executeQuery(sql);
+
+			// loop through the result set
+			while (rs.next()) {
+				passengers.add(new Passenger(
+						rs.getString("ShipName"),
+						rs.getString("Name_Last"),
+						rs.getString("Name_First"),
+						rs.getString("Email"),
+						rs.getInt("CabinType")));
+			}
+		} catch (SQLException e) {
+			System.out.println(e.getMessage());
+		}
+		return passengers;
+	}
+	
 
 	//Method to add ship to database	
 	public static void insertShip(String name, String company, String location, int tripLength, int numCabins, 
