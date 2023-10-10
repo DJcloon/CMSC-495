@@ -62,15 +62,13 @@
 	-fx-margin: 1000px;
 }
 
-.load-button {
-	
-}
-
-
-.transaction-table {
-	
-}
-
-.overview-table {
-	
+/* styles.css */
+.welcome-label {
+    -fx-font-size: 36px; /* Adjust the font size as needed */
+    -fx-font-weight: bold;
+    -fx-text-alignment: center; /* Center-align the text */
+    -fx-text-fill: #333; /* Text color */
+    -fx-text-fill: #333; /* Add a subtle text shadow */
+    -fx-text-alignment: center; /* Center-align the text */
+    -fx-wrap-text: true; /* Enable text wrapping */
 }
