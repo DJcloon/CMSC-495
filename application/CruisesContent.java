@@ -63,6 +63,8 @@ public class CruisesContent extends ContentArea {
     // Selections
     int selectedCabin;
     CruiseShip selectedShip;
+    int selectedShipID;
+    String[] passengerNames;
     
     public CruisesContent(CLMS db) {
     	
@@ -249,6 +251,7 @@ public class CruisesContent extends ContentArea {
     private CruiseShip getShip(String selected) {
     	for (CruiseShip ship : CLMS.ships) {
     		if (ship.getName() == selected.trim()) {
+			selectedShipID = ship.shipID;
     			return ship;
     		}
     	}
@@ -343,7 +346,10 @@ public class CruisesContent extends ContentArea {
         	    	openErrorWindow("BILLING FIELDS CANNOT BE EMPTY");
 	        	}
         	    else {
-        	    	selectedShip.bookCabin(selectedCabin);
+        	    	db.ships[selectedShipID].bookCabin(selectedCabin);
+        	    	for(int i = 0; i < passengerNames.length; i+=2) {
+        	    		DatabaseController.insertPassenger(db.ships[selectedShipID].getName(), passengerNames[i], 
+        	    				passengerNames[i+1], emailField.getText(),selectedCabin);}
     	        	newStage.close();
     	        	passengerStage.close();
     	        	lodgingStage.close();
@@ -383,6 +389,7 @@ public class CruisesContent extends ContentArea {
 	        grid.getColumnConstraints().addAll(col1, col2);
 	
 	        // Create input fields for passenger information
+		 passengerNames = new String[passengers*2];
 	        for (int i = 0; i < passengers; i++) {
 	            Label firstNameLabel = new Label("Passenger " + (i + 1) + " First Name:");
 	            TextField firstNameField = new TextField();
@@ -412,9 +419,12 @@ public class CruisesContent extends ContentArea {
 	
 	        submitButton.setOnAction(event -> {
 	        	boolean anyFieldEmpty = false;
+			int i = 0;
 	        	for (Node node : grid.getChildren()) {
 	        	    if (node instanceof TextField) {
 	        	        TextField textField = (TextField) node;
+				passengerNames[i] = textField.getText();
+	        	        i++;
 	        	        if (textField.getText().isEmpty()) {
 	        	            anyFieldEmpty = true;
 	        	            break; 
