@@ -1,6 +1,5 @@
 package application;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -10,8 +9,8 @@ public class CLMS {
 	static CruiseShip[] ships = new CruiseShip[12]; 
 
 	CLMS() {
+		DatabaseController.connect();
 		loadShipArray();
-
 	}
 
 	//test for ship array to verify load
@@ -35,15 +34,15 @@ public class CLMS {
 	//method to load array for ship objects from database
 	public static void loadShipArray(){
 		for(int i = 1; i <= ships.length; i++) {
-			queryShipObjectData(DatabaseController.connect(), i);
+			queryShipObjectData(i);
 		}
 	}
 	//method to query all ships from database and return as ship object  
-	public static void queryShipObjectData(Connection conn, int i) {
+	public static void queryShipObjectData(int i) {
 		String sql = "SELECT * FROM ships WHERE id = " + i;
 
 		try {  
-			Statement stmt  = conn.createStatement();  
+			Statement stmt  = DatabaseController.getConn().createStatement();  
 			ResultSet rs    = stmt.executeQuery(sql);  
 			ships[rs.getInt("id")-1] = new CruiseShip(rs.getInt("id"),
 					rs.getString("ShipName"),
@@ -71,20 +70,20 @@ public class CLMS {
 	public static ResultSet databaseQuery(String column, String tableName, String searchTerm, String value){  
 		String sql = "SELECT "+column+" FROM "+tableName+ 
 				" WHERE "+searchTerm+" = "+value;
-		ResultSet rs = queryCore(DatabaseController.connect(), sql);
+		ResultSet rs = queryCore(sql);
 		return rs;
 	}  
 	//method to run SQL database query for int
 	public static ResultSet databaseQuery(String column, String tableName, String searchTerm, int value){  
 		String sql = "SELECT "+column+" FROM " +tableName+ " WHERE " +searchTerm+ " = " +value;;  
-		ResultSet rs = queryCore(DatabaseController.connect(), sql);
+		ResultSet rs = queryCore(sql);
 		return rs;
 	}  
 	//core of SQL database query.  runs query and returns results
-	public static ResultSet queryCore(Connection conn, String sql) {
+	public static ResultSet queryCore(String sql) {
 		ResultSet rs = null;
 		try {  
-			Statement stmt  = conn.createStatement();  
+			Statement stmt  = DatabaseController.getConn().createStatement();  
 			rs    = stmt.executeQuery(sql);  
 		} catch (SQLException e) {  
 			System.out.println(e.getMessage());  
@@ -94,4 +93,3 @@ public class CLMS {
 
 
 }
-
