@@ -5,9 +5,10 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
-import javafx.scene.control.ComboBox;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+
+import java.util.List;
 
 public class ManifestContent extends ContentArea {
 
@@ -18,113 +19,78 @@ public class ManifestContent extends ContentArea {
 		VBox vbox = new VBox(15); // space between components
 
 		Label manifestLabel = new Label("Cruise Ship Manifest Information");
-		ComboBox<String> manifestComboBox = setupComboBox();
 
 		manifestTable = createManifestTable();
 
-		vbox.getChildren().addAll(manifestLabel, manifestComboBox, manifestTable);
+		vbox.getChildren().addAll(manifestLabel, manifestTable);
+		populateData(); // New line added to populate data on initialization
 
 		content = vbox;
 		content.getStyleClass().add("overview-content");
 	}
 
-	private ComboBox<String> setupComboBox() {
-		ComboBox<String> manifestComboBox = new ComboBox<>();
-		manifestComboBox.getItems().addAll("Select a ship", "Cruise Ship 1", "Cruise Ship 2", "Cruise Ship 3");
-		manifestComboBox.setValue("Select a ship"); // Default selection
-
-		manifestComboBox.setOnAction(event -> {
-			switch (manifestComboBox.getValue()) {
-				case "Cruise Ship 1":
-					populateDataForShip1();
-					break;
-				case "Cruise Ship 2":
-					populateDataForShip2();
-					break;
-				case "Cruise Ship 3":
-					populateDataForShip3();
-					break;
-				default:
-					manifestTable.getItems().clear();
-			}
-		});
-
-		return manifestComboBox;
-	}
-
 	private TableView<Passenger> createManifestTable() {
 		TableView<Passenger> table = new TableView<>();
 
-		TableColumn<Passenger, String> nameColumn = new TableColumn<>("Passenger Name");
-		nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+		TableColumn<Passenger, String> shipNameColumn = new TableColumn<>("Ship Name");
+		shipNameColumn.setCellValueFactory(new PropertyValueFactory<>("shipName"));
 
-		TableColumn<Passenger, String> cabinColumn = new TableColumn<>("Cabin Number");
-		cabinColumn.setCellValueFactory(new PropertyValueFactory<>("cabin"));
+		TableColumn<Passenger, String> lastNameColumn = new TableColumn<>("Last Name");
+		lastNameColumn.setCellValueFactory(new PropertyValueFactory<>("lastName"));
 
-		TableColumn<Passenger, String> embarkColumn = new TableColumn<>("Embarkation Point");
-		embarkColumn.setCellValueFactory(new PropertyValueFactory<>("embark"));
+		TableColumn<Passenger, String> firstNameColumn = new TableColumn<>("First Name");
+		firstNameColumn.setCellValueFactory(new PropertyValueFactory<>("firstName"));
 
-		TableColumn<Passenger, String> disembarkColumn = new TableColumn<>("Disembarkation Point");
-		disembarkColumn.setCellValueFactory(new PropertyValueFactory<>("disembark"));
+		TableColumn<Passenger, String> emailColumn = new TableColumn<>("Email");
+		emailColumn.setCellValueFactory(new PropertyValueFactory<>("email"));
 
-		TableColumn<Passenger, String> emergencyContactColumn = new TableColumn<>("Emergency Contact");
-		emergencyContactColumn.setCellValueFactory(new PropertyValueFactory<>("emergency"));
+		TableColumn<Passenger, Number> cabinTypeColumn = new TableColumn<>("Cabin Type");
+		cabinTypeColumn.setCellValueFactory(new PropertyValueFactory<>("cabinType"));
 
-		table.getColumns().addAll(nameColumn, cabinColumn, embarkColumn, disembarkColumn, emergencyContactColumn);
+		table.getColumns().addAll(shipNameColumn, lastNameColumn, firstNameColumn, emailColumn, cabinTypeColumn);
+
 		return table;
 	}
 
-	private void populateDataForShip1() {
-		ObservableList<Passenger> data = FXCollections.observableArrayList(
-				new Passenger("John Doe", "A203", "Miami", "Bahamas", "Jane Doe"));
-		manifestTable.setItems(data);
-	}
-
-	private void populateDataForShip2() {
-		ObservableList<Passenger> data = FXCollections.observableArrayList(
-				new Passenger("Alice Smith", "B309", "Los Angeles", "Hawaii", "Bob Smith"));
-		manifestTable.setItems(data);
-	}
-
-	private void populateDataForShip3() {
-		ObservableList<Passenger> data = FXCollections.observableArrayList(
-				new Passenger("Charlie Brown", "C507", "New York", "Bermuda", "Lucy Brown"));
+	private void populateData() {
+		List<Passenger> passengerList = DatabaseController.getAllPassengersForTable();
+		ObservableList<Passenger> data = FXCollections.observableArrayList(passengerList);
 		manifestTable.setItems(data);
 	}
 
 	public static class Passenger {
-		private final String name;
-		private final String cabin;
-		private final String embark;
-		private final String disembark;
-		private final String emergency;
+		private final String shipName;
+		private final String lastName;
+		private final String firstName;
+		private final String email;
+		private final int cabinType;
 
-		public Passenger(String name, String cabin, String embark, String disembark, String emergency) {
-			this.name = name;
-			this.cabin = cabin;
-			this.embark = embark;
-			this.disembark = disembark;
-			this.emergency = emergency;
+		public Passenger(String shipName, String lastName, String firstName, String email, int cabinType) {
+			this.shipName = shipName;
+			this.lastName = lastName;
+			this.firstName = firstName;
+			this.email = email;
+			this.cabinType = cabinType;
 		}
 
-		public String getName() {
-			return name;
+		public String getShipName() {
+			return shipName;
 		}
 
-		public String getCabin() {
-			return cabin;
+		public String getLastName() {
+			return lastName;
 		}
 
-		public String getEmbark() {
-			return embark;
+		public String getFirstName() {
+			return firstName;
 		}
 
-		public String getDisembark() {
-			return disembark;
+		public String getEmail() {
+			return email;
 		}
 
-		public String getEmergency() {
-			return emergency;
+		public int getCabinType() {
+			return cabinType;
 		}
 	}
 }
