@@ -13,22 +13,24 @@ public class DatabaseController {
 
 	static String url = "jdbc:sqlite:src/application/CLMSv2.db";  
 
+	static Connection conn = null; 
+	
 	public static void createNewDatabase() {  
 		try {  
 			Connection conn = DriverManager.getConnection(url);  
 			if (conn != null) {  
-				DatabaseMetaData meta = conn.getMetaData();  
+				DatabaseMetaData meta = getConn().getMetaData();  
 				System.out.println("The driver name is " + meta.getDriverName());  
 				System.out.println("A new database has been created.");
-				//createNewTableShips(conn, url);
-				//createNewTablePassengers(conn, url);
-				//loadShip(conn);
-				//loadPassenger(conn);
+				createNewTableShips(url);
+				createNewTablePassengers(url);
+				loadShip();
+				loadPassenger();
 			}  
 		} catch (SQLException e) {System.out.println(e.getMessage());}  
 	}  
 
-	public static void createNewTableShips(Connection conn, String url) {  
+	public static void createNewTableShips(String url) {  
 
 		// SQL statement for creating a new table  
 		String sql = "CREATE TABLE IF NOT EXISTS ships (\n"  
@@ -50,14 +52,14 @@ public class DatabaseController {
 				+ " Destination5 text NOT NULL\n"
 				+ ");";  
 		try{  
-			Statement stmt = conn.createStatement();  
+			Statement stmt = getConn().createStatement();  
 			stmt.execute(sql);  
 		} catch (SQLException e) {  
 			System.out.println(e.getMessage());  
 		}  
 	}  
 
-	public static void createNewTablePassengers(Connection conn, String url) {  
+	public static void createNewTablePassengers(String url) {  
 
 		// SQL statement for creating a new table  
 		String sql = "CREATE TABLE IF NOT EXISTS passengers (\n"  
@@ -69,14 +71,14 @@ public class DatabaseController {
 				+ " CabinType integer real\n"
 				+ ");";  
 		try{  
-			Statement stmt = conn.createStatement();  
+			Statement stmt = getConn().createStatement();  
 			stmt.execute(sql);  
 		} catch (SQLException e) {  
 			System.out.println(e.getMessage());  
 		}  
 	} 
 	//Method to add ship to database	
-	public static void insertPassenger(Connection conn, String shipName, String firstName, 
+	public static void insertPassenger(String shipName, String firstName, 
 			String lastName, String Email, int cabinType) {  
 		String sql = "INSERT INTO passengers(ShipName, " 
 				+ "Name_First, " 
@@ -86,7 +88,7 @@ public class DatabaseController {
 				+ "VALUES(?,?,?,?,?)";  
 
 		try{  
-			PreparedStatement pstmt = conn.prepareStatement(sql);  
+			PreparedStatement pstmt = getConn().prepareStatement(sql);  
 
 			pstmt.setString(1, shipName);  
 			pstmt.setString(2, firstName);
@@ -99,11 +101,11 @@ public class DatabaseController {
 		}  
 	}  
 
-	public static void selectAllPassengers(Connection conn){  
+	public static void selectAllPassengers(){  
 		String sql = "SELECT * FROM passengers";  
 
 		try {  
-			Statement stmt  = conn.createStatement();  
+			Statement stmt  = getConn().createStatement();  
 			ResultSet rs    = stmt.executeQuery(sql);  
 
 			// loop through the result set  
@@ -120,14 +122,14 @@ public class DatabaseController {
 		}  
 	} 
 
-	public static void loadPassenger(Connection conn) {
-		insertPassenger(conn, "Carnival Paradise", "Steve", 
+	public static void loadPassenger() {
+		insertPassenger("Carnival Paradise", "Steve", 
 				"Jobs", "Steve.jobs@msn.com", 1);
 	}
 
 
 	//Method to add ship to database	
-	public static void insertShip(Connection conn, String name, String company, String location, int tripLength, int numCabins, 
+	public static void insertShip(String name, String company, String location, int tripLength, int numCabins, 
 			int yearOfBuild, int maintenance, int maxCapacity,String origin, String finalDestination, 
 			String destination1,String destination2, String destination3, String destination4, String destination5) {  
 		String sql = "INSERT INTO ships(ShipName, "
@@ -148,7 +150,7 @@ public class DatabaseController {
 				+ "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";  
 
 		try{  
-			PreparedStatement pstmt = conn.prepareStatement(sql);  
+			PreparedStatement pstmt = getConn().prepareStatement(sql);  
 
 			pstmt.setString(1, name);  
 			pstmt.setString(2, company);
@@ -172,71 +174,71 @@ public class DatabaseController {
 	}  
 
 	//method to preload ship data to SQLite Database
-	public static void loadShip(Connection conn) {
+	public static void loadShip() {
 
-		insertShip(conn, "Carnival Paradise", "Carnival Cruise Line",
+		insertShip("Carnival Paradise", "Carnival Cruise Line",
 				"https://www.cruisemapper.com/?imo=9120877",
 				4, 61, 1998, 2021, 183,
 				"Tampa, Florida", "Tampa, Florida",
 				"Cozumel, Mexico", "", "", "", "");
-		insertShip(conn, "Carnival Legend", "Carnival Cruise Line",
+		insertShip("Carnival Legend", "Carnival Cruise Line",
 				"https://www.cruisemapper.com/?imo=9224726",
 				6,62,2002,2021,186,
 				"Baltimore, Maryland", "Baltimore, Maryland",
 				"Kings Wharf, Bermuda", "", "", "", "");
-		insertShip(conn, "Carnival Panorama","Carnival Cruise Line",
+		insertShip("Carnival Panorama","Carnival Cruise Line",
 				"https://www.cruisemapper.com/?imo=9802384",
 				7,965,2019,2024,2895,
 				"Los Angeles, California","Los Angeles, California"
 				,"Puerto Vallarta, Mexico","Mazatlan, Mexico","Cabo San Lucas, Mexico","","");
-		insertShip(conn, "Carnival Vista","Carnival Cruise Line",
+		insertShip("Carnival Vista","Carnival Cruise Line",
 				"https://www.cruisemapper.com/?imo=9692569"
 				,7,965,2016,0,2895,
 				"Galveston, Texas","Galveston, Texas",
 				"Roatan Island, Honduras","Belize City, Belize","Cozumel, Mexico","","");
-		insertShip(conn, "Disney Wish","Disney Cruise Line",
+		insertShip("Disney Wish","Disney Cruise Line",
 				"https://www.cruisemapper.com/?imo=9834739",
 				4,238,2022,0,714,
 				"Orlando, Florida","Orlando, Florida",
 				"Nassau, Bahamas","Disney Castaway Island, Bahamas","","","");
-		insertShip(conn, "Disney Magic","Disney Cruise Line",
+		insertShip("Disney Magic","Disney Cruise Line",
 				"https://www.cruisemapper.com/?imo=9126807",
 				4,877,1998,2023,2631,
 				"Miami, Florida","Miami, Florida",
 				"Nassau, Bahamas","Disney Castaway Island, Bahamas","","","");
-		insertShip(conn, "Disney Wonder","Disney Cruise Line",
+		insertShip("Disney Wonder","Disney Cruise Line",
 				"https://www.cruisemapper.com/?imo=9126819",
 				7,877,1999,2023,2631,
 				"Vancouver, Canada","Vancouver, Canada",
 				"Skagway, Alaska","Juneau, Alaska","Ketchikan, Alaska","","");
-		insertShip(conn, "Marella Discovery","Marella Cruises",
+		insertShip("Marella Discovery","Marella Cruises",
 				"https://www.cruisemapper.com/?imo=9070632",
 				7,915,1996,2022,2745,
 				"Orlando, Florida","Orlando, Florida",
 				"Puerto Plata, Dominican Republic","Grand Turk Island, Turks and Caicos Islands","Nassau, Bahamas","Miami, Florida","");
-		insertShip(conn, "Marella Voyager","Marella Cruises",
+		insertShip("Marella Voyager","Marella Cruises",
 				"https://www.cruisemapper.com/?imo=9106302",
 				7,956,1997,2023,2868,
 				"Palma de Mallorca, Spain","Palma de Mallorca, Spain",
 				"Olbia, Italy","Naples, Italy","Piombino, Italy","Nice, France","Palamos, Spain");
-		insertShip(conn, "Marella Explorer","Marella Cruises",
+		insertShip("Marella Explorer","Marella Cruises",
 				"https://www.cruisemapper.com/?imo=9106297",
 				7,962,1996,2021,2886,
 				"Corfu Island, Greece","Corfu Island, Greece",
 				"Koper, Slovenia","Ravenna, Italy","Split, Croatia","Dubrovnik, Croatia","Kotor, Montenegro");
-		insertShip(conn, "Oceania Insignia","Oceania Cruises",
+		insertShip("Oceania Insignia","Oceania Cruises",
 				"https://www.cruisemapper.com/?imo=9156462",
 				7,349,1998,2022,1047,
 				"New York City, New York","New York City, New York"
 				,"St George, Bermuda","Hamilton, Bermuda","","","");
-		insertShip(conn, "Oceania Allura","Oceania Cruises",
+		insertShip("Oceania Allura","Oceania Cruises",
 				"x",
 				0,613,2025,0,1839,
 				"x","x"
 				,"x","","","","");
 
 
-		/*insert(conn, name, company, 
+		/*insert(name, company, 
 		 * location, 
 		 * tripLength, numCabins, yearOfBuild, maintenance, maxCapacity, 
 		 * origin, finalDestination, 
@@ -247,8 +249,7 @@ public class DatabaseController {
 	public static void updateShip(int ShipID, int maintenanceDate) {
 		String sql = "UPDATE ships SET Maintenance = ? WHERE ID = ?";
 
-        try (Connection conn = connect();
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement pstmt = getConn().prepareStatement(sql)) {
 
             // set the corresponding param
             pstmt.setInt(1, maintenanceDate);
@@ -260,11 +261,11 @@ public class DatabaseController {
         }
     }
 
-	public static void selectAll(Connection conn){  
+	public static void selectAll(){  
 		String sql = "SELECT * FROM ships";  
 
 		try {  
-			Statement stmt  = conn.createStatement();  
+			Statement stmt  = getConn().createStatement();  
 			ResultSet rs    = stmt.executeQuery(sql);  
 
 			// loop through the result set  
@@ -291,9 +292,17 @@ public class DatabaseController {
 		}  
 	}  
 
-	public static Connection connect() {  
-		Connection conn = null;  
-
+	public static void setConn(Connection connection) {
+		conn = connection;
+	}
+	public static Connection getConn() {
+		return conn;
+	}
+	
+	
+	public static void connect() {  
+		 
+		Connection conn = null; 
 		try {  
 			// db parameters  
 			// create a connection to the database  
@@ -305,15 +314,14 @@ public class DatabaseController {
 			System.out.println(e.getMessage());  
 		}   
 
-		return conn;
+		setConn(conn);
 	}
 
 	public static List<CruiseShip> getAllShips() {
 		List<CruiseShip> ships = new ArrayList<>();
 		String sql = "SELECT * FROM ships";
 
-		try (Connection conn = connect();
-				Statement stmt = conn.createStatement();
+		try (Statement stmt = getConn().createStatement();
 				ResultSet rs = stmt.executeQuery(sql)) {
 
 			while (rs.next()) {
@@ -343,10 +351,11 @@ public class DatabaseController {
 	}
 
 	public static void main(String[] args) {  
+		//connect();
 		//createNewDatabase(); 
-		//selectAll(connect());
-		//selectAllPassengers(connect());
+		//selectAll();
+		//selectAllPassengers();
 		
 		
 	}
-}  
+} 
