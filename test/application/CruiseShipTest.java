@@ -63,12 +63,14 @@ public class CruiseShipTest {
 
     @Test
     public void testGetOrigin() {
-        assertEquals("Origin", cruiseShip.getorigin());
+        assertEquals("Origin", cruiseShip.getOrigin());
     }
 
     @Test
-    public void testSetMaintenance() {
-        cruiseShip.setMaintenance(5);
-        assertEquals(5, cruiseShip.getMaintenance());
+    public void testBookCabin() {
+        int initialCabins = cruiseShip.getAvailableCabins();
+        cruiseShip.bookCabin(0); // Booking a standard cabin
+        assertEquals(initialCabins - 1, cruiseShip.getAvailableCabins());
     }
+
 }
