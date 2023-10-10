@@ -129,6 +129,17 @@ public class DatabaseController {
 				"Jobs", "Steve.jobs@msn.com", 1);
 	}
 
+	public static void deletePassenger(int i) {
+		String sql = "DELETE FROM passengers WHERE id= '" + i + "';";
+		
+        try (PreparedStatement  stmt = getConn().prepareStatement(sql)) {
+
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
 	// Method to get all passengers from database
 
 	public static List<Passenger> getAllPassengersForTable() {
