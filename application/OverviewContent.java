@@ -3,6 +3,7 @@ package application;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Worker.State;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
@@ -15,12 +16,15 @@ import javafx.scene.layout.VBox;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import javafx.util.Callback;
+import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.StackPane;
@@ -51,31 +55,29 @@ public class OverviewContent extends ContentArea {
         WebView webView = new WebView();
         WebEngine webEngine = webView.getEngine();
 
-        webEngine.load("https://www.cruisemapper.com/");
-
         // Define the four categories (replace with actual content)
-        VBox category1 = new VBox(new Label("Category 1 Content"));
+        Label cat1 = new Label("Welcome to the Cruise Liner Management System!");
+        VBox category1 = new VBox(cat1);
+        cat1.getStyleClass().add("welcome-label");
+        category1.setAlignment(Pos.CENTER); 
         ImageView defaultImage = new ImageView(
                 getClass().getResource("/application/images/overview/overview.jpg").toExternalForm());
         // Set the dimensions you want for the image
-        defaultImage.setFitWidth(200); // example width
-        defaultImage.setFitHeight(100); // example height
+        defaultImage.setFitHeight(400);
+        defaultImage.setFitWidth(500);
+        defaultImage.setPreserveRatio(true);
         // Preserve the image's aspect ratio
         defaultImage.setPreserveRatio(true);
         category2 = new VBox(defaultImage);
-
-        VBox category3 = new VBox(new Label("Category 3 Content"));
-
+        category2.setAlignment(Pos.CENTER);
         // Add CSS styles to the categories
         category1.getStyleClass().add("overview-category");
         category2.getStyleClass().add("overview-category");
-        category3.getStyleClass().add("overview-category");
 
         // Add categories to the GridPane
         gridPane.add(category1, 0, 0);
         gridPane.add(category2, 1, 0);
-        gridPane.add(category3, 0, 1);
-        gridPane.add(new Label("Ships"), 0, 2, 2, 1);
+        gridPane.add(new Label("Ship Overview"), 0, 2, 2, 1);
         gridPane.add(createShipTable(), 0, 3, 2, 1);
 
         // Set the GridPane to expand within its container
@@ -133,8 +135,7 @@ public class OverviewContent extends ContentArea {
             Hyperlink hyperlink = new Hyperlink("View Location");
             hyperlink.setOnAction(e -> {
                 webView.getEngine().load(locationURL);
-                category2.getChildren().clear();
-                category2.getChildren().add(webView);
+                launchLocationWindow(webView);
             });
             return new SimpleObjectProperty<>(hyperlink);
         });
@@ -172,6 +173,25 @@ public class OverviewContent extends ContentArea {
         shipTable.getItems().addAll(ships);
 
         return shipTable;
+    }
+    
+    private void launchLocationWindow(WebView view) {
+        Stage newStage = new Stage();
+        newStage.setTitle("Current Location");
+
+        GridPane locPane = new GridPane();
+        locPane.setAlignment(Pos.CENTER);
+        Scene newScene = new Scene(locPane, 800, 600);
+
+        Button close = new Button("Close");
+        close.setPrefSize(100, 10);
+        close.setOnAction(e -> newStage.close());
+        locPane.getChildren().add(view);
+        locPane.add(close, 0, 1);
+        newStage.initModality(Modality.APPLICATION_MODAL);
+        newStage.setScene(newScene);
+        newStage.show();
+        
     }
 
 }
