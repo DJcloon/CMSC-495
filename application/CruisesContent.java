@@ -27,6 +27,7 @@ import javafx.collections.ObservableList;
 import javafx.beans.value.ChangeListener;
 import java.io.InputStream;
 import javafx.beans.value.ObservableValue;
+import javafx.scene.Node;
 
 public class CruisesContent extends ContentArea {
 	
@@ -59,6 +60,10 @@ public class CruisesContent extends ContentArea {
     // Database
     CLMS db;
     
+    // Selections
+    int selectedCabin;
+    CruiseShip selectedShip;
+    
     public CruisesContent(CLMS db) {
     	
 		shipName = new Label("");
@@ -80,6 +85,8 @@ public class CruisesContent extends ContentArea {
         passengerWindow = false;
         billingWindow = false;
         this.db = db;
+        selectedCabin = 0;
+        selectedShip = getShip("Carnival Breeze");
     }
     
     @Override
@@ -141,30 +148,24 @@ public class CruisesContent extends ContentArea {
         
         // Event Listeners
         shipButton.setOnAction(e -> {
-        	if (searchComboBox.getValue() != null) {
-            	openLodgingWindow(searchComboBox.getValue());
-        	}
-        	else {
-        		openErrorWindow("CRUISE");
-        	}
+        	openLodgingWindow();
         });
         
         searchComboBox.valueProperty().addListener(new ChangeListener<String>() {
         	@Override public void changed(ObservableValue ov, String t, String t1) {
+        		selectedShip = getShip(t1);
         		updateCruiseInfo(t1);
               }    
         });
 
+		selectedShip = getShip("Carnival Breeze");
+        
         // Super class content set
         content = vbox;
         content.getStyleClass().add("overview-content");
     }
       
-    private void openLodgingWindow(String selected) {
-    	String selectedShip = selected;
-    	if (!lodgingWindow ) {
-    		
-    		lodgingWindow = true;
+    private void openLodgingWindow() {
 	        Stage newStage = new Stage();
 	        newStage.setTitle("Lodging");       
 	        GridPane lodgingLayout = new GridPane();
@@ -222,11 +223,9 @@ public class CruisesContent extends ContentArea {
 	        // Event Listeners
 	        bookButton.setOnAction(e -> {
 	        	if (cabinTypes.getValue() != null) {
+	        		selectedCabin = getCabin(cabinTypes.getValue());
 	        		openPassengerWindow(passengerCount.getValue(), newStage);
 	        	}
-//	        	else if (selectedShip) {
-//	        		
-//	        	}
 	        	else {
 	        		openErrorWindow("CRUISE");
 	        	}
@@ -234,25 +233,27 @@ public class CruisesContent extends ContentArea {
 	        
 	        cabinTypes.valueProperty().addListener(new ChangeListener<String>() {
 	            @Override public void changed(ObservableValue ov, String t, String t1) {
-	            	updateLodgingInfo(t1, selectedShip);
+	            	updateLodgingInfo(t1);
 	              }
 	        });
 	        
-	        passengerCount.valueProperty().addListener((obs, oldValue, newValue) -> 
-	        updateLodgingInfo(cabinTypes.getValue(), selectedShip));
-	        
-	        updateLodgingInfo(cabinTypes.getValue(), selectedShip);
-	        
-	        newStage.setOnCloseRequest(e->{
-	        	lodgingWindow = false;
+	        passengerCount.valueProperty().addListener((obs, oldValue, newValue) ->    {     
+	        	updateLodgingInfo(cabinTypes.getValue());
 	        });
+	        updateLodgingInfo("Standard Cabin");
 	        newStage.initModality(Modality.APPLICATION_MODAL);
 	        newStage.setScene(newScene);
 	        newStage.show();
-
-    	}
-    	
     }
+    
+    private CruiseShip getShip(String selected) {
+    	for (CruiseShip ship : CLMS.ships) {
+    		if (ship.getName() == selected.trim()) {
+    			return ship;
+    		}
+    	}
+    	return null;
+    	    }
 
     private void openBillingWindow(Stage lodgingStage, Stage passengerStage) {
     	if (!billingWindow) {
@@ -327,13 +328,30 @@ public class CruisesContent extends ContentArea {
 	        newStage.setScene(newScene);
 	        newStage.show();
 	                
-	        payButton.setOnAction(e-> {
-	        	newStage.close();
-	        	passengerStage.close();
-	        	lodgingStage.close();
-	        	lodgingWindow = false;
-	        	passengerWindow = false;
-	        	billingWindow = false;
+	        payButton.setOnAction(event -> {
+	        	boolean anyFieldEmpty = false;
+	        	for (Node node : billingPane.getChildren()) {
+	        	    if (node instanceof TextField) {
+	        	        TextField textField = (TextField) node;
+	        	        if (textField.getText().isEmpty()) {
+	        	            anyFieldEmpty = true;
+	        	            break; 
+	        	        }
+	        	    }
+	    	    }
+        	    if(anyFieldEmpty) {
+        	    	openErrorWindow("BILLING FIELDS CANNOT BE EMPTY");
+	        	}
+        	    else {
+        	    	selectedShip.bookCabin(selectedCabin);
+    	        	newStage.close();
+    	        	passengerStage.close();
+    	        	lodgingStage.close();
+    	        	lodgingWindow = false;
+    	        	passengerWindow = false;
+    	        	billingWindow = false;	
+        	    }
+
 	        });
 	        
 	        cancelButton.setOnAction(e -> {
@@ -393,7 +411,23 @@ public class CruisesContent extends ContentArea {
 	        grid.add(submitButton, 1, numRows);
 	
 	        submitButton.setOnAction(event -> {
-	        	openBillingWindow(passengerStage, lodgingStage);
+	        	boolean anyFieldEmpty = false;
+	        	for (Node node : grid.getChildren()) {
+	        	    if (node instanceof TextField) {
+	        	        TextField textField = (TextField) node;
+	        	        if (textField.getText().isEmpty()) {
+	        	            anyFieldEmpty = true;
+	        	            break; 
+	        	        }
+	        	    }
+	    	    }
+        	    if(anyFieldEmpty) {
+        	    	openErrorWindow("PASSENGER FIELDS CANNOT BE EMPTY");
+	        	}
+        	    else {
+    	        	openBillingWindow(passengerStage, lodgingStage);	
+        	    }
+
 	        });
 	
 	        Scene scene = new Scene(grid, 400, 30 + numRows * 25); // Adjust the height based on numRows
@@ -419,7 +453,7 @@ public class CruisesContent extends ContentArea {
         Button close = new Button("Close");
         close.setPrefSize(100, 10);
         close.setOnAction(e -> newStage.close());
-        errorPane.add(new Label("SELECT A " + error), 0, 0);
+        errorPane.add(new Label(error), 0, 0);
         errorPane.add(close, 0, 1);
         newStage.initModality(Modality.APPLICATION_MODAL);
         newStage.setScene(newScene);
@@ -427,24 +461,28 @@ public class CruisesContent extends ContentArea {
         
     }
     
-    private void updateLodgingInfo(String cabin, String selected) {
+    private void updateLodgingInfo(String cabin) {
     	switch (cabin) {
 		case "Standard Cabin":
+			cabinType.setText("Standard Cabin");
 			cabinAmenities.setText("Porthole, Toilet");
 	    	estCost.setText(String.valueOf(calculateCost(0)));
 	    	cabinImageURL = getClass().getResourceAsStream("/application/images/cabins/Standard Cabin.jpg");
 			break;
 		case "Deluxe Cabin":
+			cabinType.setText("Deluxe Cabin");
 			cabinAmenities.setText("Window, Toilet");
 	    	estCost.setText(String.valueOf(calculateCost(1)));
 	    	cabinImageURL = getClass().getResourceAsStream("/application/images/cabins/Deluxe Cabin.jpg");
 			break;
 		case "Premium Cabin":
+			cabinType.setText("Premium Cabin");
 			cabinAmenities.setText("Balcony, Bath, Toilet");
 	    	estCost.setText(String.valueOf(calculateCost(2)));
 	    	cabinImageURL = getClass().getResourceAsStream("/application/images/cabins/Premium Cabin.jpg");
 			break;
 		case "Spa Cabin":
+			cabinType.setText("Spa Cabin");
 			cabinAmenities.setText("Balcony, Bath, Toilet, Storage Closet");
 	    	estCost.setText(String.valueOf(calculateCost(3)));
 	    	cabinImageURL = getClass().getResourceAsStream("/application/images/cabins/Spa Cabin.jpg");
@@ -465,7 +503,7 @@ public class CruisesContent extends ContentArea {
     			tripLength.setText(String.valueOf(cruiseShip.getTripLength()));
     			yearBuilt.setText(String.valueOf(cruiseShip.getYearOfBuild()));
     			origin.setText(cruiseShip.getorigin());
-    			finalDestination.setText("FINAL DESTINATION"); // replace with final destination
+    			finalDestination.setText(cruiseShip.getFinalDestination()); // replace with final destination
     			passengers.setText(String.valueOf(cruiseShip.getMaxCapacity()));
             }
         }
@@ -485,6 +523,20 @@ public class CruisesContent extends ContentArea {
     // Gets Rooms from database (Need to Update)
     private ObservableList<String> getCabins() {
     	return FXCollections.observableArrayList("Standard Cabin", "Deluxe Cabin", "Premium Cabin", "Spa Cabin");
+    }
+    
+    private int getCabin(String cabin) {
+    	switch (cabin) {
+    	case "Standard Cabin":
+    		return 0;
+    	case "Deluxe Cabin":
+    		return 1;
+    	case "Premium Cabin":
+    		return 2;
+    	case "Spa Cabin":
+    		return 3;
+    	}
+    	return 0;
     }
     
     public int calculateCost(int cabinType) {
