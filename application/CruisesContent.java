@@ -512,7 +512,7 @@ public class CruisesContent extends ContentArea {
     			shipCruiseLine.setText(cruiseShip.getCompany()); // replace with company
     			tripLength.setText(String.valueOf(cruiseShip.getTripLength()));
     			yearBuilt.setText(String.valueOf(cruiseShip.getYearOfBuild()));
-    			origin.setText(cruiseShip.getorigin());
+    			origin.setText(cruiseShip.getOrigin());
     			finalDestination.setText(cruiseShip.getFinalDestination()); // replace with final destination
     			passengers.setText(String.valueOf(cruiseShip.getMaxCapacity()));
             }
