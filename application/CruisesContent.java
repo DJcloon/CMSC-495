@@ -1,8 +1,5 @@
 package application;
 import javafx.scene.layout.ColumnConstraints;
-import java.sql.Connection;  
-import java.sql.DriverManager;  
-import java.sql.SQLException;  
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
