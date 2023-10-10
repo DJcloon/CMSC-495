@@ -34,10 +34,10 @@ public class Main extends Application {
         OverviewContent overviewContent = new OverviewContent();
         overviewContent.initialize();
 
-        CruisesContent cruisesContent = new CruisesContent();
+        CruisesContent cruisesContent = new CruisesContent(clms);
         cruisesContent.initialize();
 
-        MaintenanceContent maintenanceContent = new MaintenanceContent();
+        MaintenanceContent maintenanceContent = new MaintenanceContent(clms);
         maintenanceContent.initialize();
 
         ManifestContent manifestContent = new ManifestContent();
