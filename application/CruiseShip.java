@@ -1,4 +1,6 @@
 package application;
+import java.util.ArrayList;
+
 
 public class CruiseShip {
 
@@ -22,7 +24,7 @@ public class CruiseShip {
 	Boolean inService; 
 	
 	//array of cabins
-	Cabin[] cabins;
+	ArrayList<Cabin> cabins;
 	
 	public CruiseShip(int shipID, String name, String company, String location, int tripLength, int numCabins, 
     		int yearOfBuild, int maintenance, int maxCapacity,String origin, String finalDestination, 
@@ -44,7 +46,28 @@ public class CruiseShip {
 		this.maintenance = maintenance;
 		this.maxCapacity = maxCapacity;
 		setService(maintenance);
+		cabins = new ArrayList<Cabin>();
 	}
+	
+	public void bookCabin(int type) {
+		Cabin cabin = null;
+		switch (type) {
+		case 0:
+			cabin = new StandardCabin();
+			break;
+		case 1:
+			cabin = new DeluxeCabin();
+			break;
+		case 2:
+			cabin = new PremiumCabin();
+			break;
+		case 3:
+			cabin = new SpaCabin();
+			break;
+		}
+		cabins.add(cabin);
+	}
+	
 	public void setService(int maintenance) {
 		if(maintenance == 2023) {
 			inService = false; 
@@ -110,12 +133,11 @@ public class CruiseShip {
 		return maxCapacity;
 		}
 	public int getAvailableCabins() {
-		return getNumCabins() - cabins.length;	
+		return getNumCabins() - cabins.size();	
 		}
 	public void printShipDetails() {
 		System.out.println(shipID + name + company + location + tripLength + numCabins + 
 	    		yearOfBuild + maintenance + maxCapacity + origin + finalDestination + 
 	    		 destination1 + destination2 + destination3 + destination4 + destination5);
 	}
-}
 }
