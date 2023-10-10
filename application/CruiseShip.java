@@ -92,7 +92,7 @@ public class CruiseShip {
 	public String getLocation(){
 		return location;
 		}
-	public String getorigin(){
+	public String getOrigin(){
 		return origin;
 		}
 	public String getFinalDestination() {
